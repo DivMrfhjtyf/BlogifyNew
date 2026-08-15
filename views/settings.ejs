@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include("./partials/head") %>
+    <title>Settings - Blogify</title>
+    <style>
+        .settings-container {
+            max-width: 900px;
+        }
+
+        .settings-sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .settings-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .settings-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .settings-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #475569;
+            text-decoration: none;
+            border-radius: 8px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .settings-menu a:hover {
+            background-color: #f1f5f9;
+            color: #6366f1;
+            border-left-color: #6366f1;
+        }
+
+        .settings-menu a.active {
+            background-color: #e0e7ff;
+            color: #6366f1;
+            border-left-color: #6366f1;
+            font-weight: 600;
+        }
+
+        body.dark-mode .settings-menu a {
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .settings-menu a:hover,
+        body.dark-mode .settings-menu a.active {
+            background-color: #1e1b4b;
+            color: #818cf8;
+        }
+
+        .settings-section {
+            display: none;
+        }
+
+        .settings-section.active {
+            display: block;
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .settings-card {
+            background: #1a1a2e;
+            border-color: #333;
+        }
+
+        .settings-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        body.dark-mode .settings-card h3 {
+            border-bottom-color: #333;
+        }
+
+        .settings-card h3 i {
+            color: #6366f1;
+            font-size: 1.4rem;
+        }
+
+        .settings-group {
+            margin-bottom: 2rem;
+        }
+
+        .settings-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-group label {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        body.dark-mode .settings-group label {
+            color: #f1f1f1;
+        }
+
+        .settings-group .form-control,
+        .settings-group .form-select,
+        .settings-group textarea {
+            background-color: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .settings-group .form-control,
+        body.dark-mode .settings-group .form-select,
+        body.dark-mode .settings-group textarea {
+            background-color: #252542;
+            border-color: #3a3a52;
+            color: #f1f1f1;
+        }
+
+        .settings-group .form-control:focus,
+        .settings-group .form-select:focus,
+        .settings-group textarea:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            outline: none;
+        }
+
+        .settings-description {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        body.dark-mode .settings-description {
+            color: #94a3b8;
+        }
+
+        .profile-img-wrapper {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #6366f1;
+            margin-bottom: 1rem;
+        }
+
+        .img-edit-overlay {
+            position: relative;
+            display: inline-block;
+        }
+
+        .img-edit-label {
+            display: inline-block;
+            background: #6366f1;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .img-edit-label:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        body.dark-mode .toggle-switch {
+            background: #252542;
+        }
+
+        .toggle-switch label {
+            margin: 0;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        body.dark-mode .toggle-switch label {
+            color: #f1f1f1;
+        }
+
+        .form-check {
+            padding-left: 0;
+        }
+
+        .form-check-input {
+            width: 2.5rem;
+            height: 1.5rem;
+            margin-top: 0;
+            cursor: pointer;
+            accent-color: #6366f1;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+        }
+
+        .btn-danger-custom {
+            background: #dc2626;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger-custom:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+
+        .danger-zone {
+            border: 2px solid #fecaca;
+            background: #fef2f2;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        body.dark-mode .danger-zone {
+            background: #450a0a;
+            border-color: #7f1d1d;
+        }
+
+        .danger-zone h4 {
+            color: #dc2626;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .danger-zone p {
+            color: #991b1b;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        body.dark-mode .danger-zone p {
+            color: #fca5a5;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.dark-mode .stat-card {
+            background: #252542;
+            border-color: #3a3a52;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #6366f1;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        body.dark-mode .stat-label {
+            color: #94a3b8;
+        }
+
+        .tab-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+
+        body.dark-mode .tab-title {
+            color: #f1f1f1;
+        }
+
+        .success-message, .error-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #16a34a;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .settings-sidebar {
+                position: static;
+                margin-bottom: 2rem;
+            }
+
+            .settings-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%- include("./partials/nave") %>
+
+    <div class="container settings-container my-5">
+        <div class="mb-4">
+            <h1 class="fw-bold mb-2"><i class="fas fa-cog"></i> Settings</h1>
+            <p class="text-muted">Manage your profile, preferences, and account settings</p>
+        </div>
+
+        <div class="row">
+            <!-- Sidebar Menu -->
+            <div class="col-lg-3">
+                <ul class="settings-menu">
+                    <li><a href="#profile" class="settings-link active" data-section="profile">
+                        <i class="fas fa-user"></i> Profile Information
+                    </a></li>
+                    <li><a href="#password" class="settings-link" data-section="password">
+                        <i class="fas fa-lock"></i> Password & Security
+                    </a></li>
+                    <li><a href="#preferences" class="settings-link" data-section="preferences">
+                        <i class="fas fa-palette"></i> Preferences
+                    </a></li>
+                    <li><a href="#notifications" class="settings-link" data-section="notifications">
+                        <i class="fas fa-bell"></i> Notifications
+                    </a></li>
+                    <li><a href="#privacy" class="settings-link" data-section="privacy">
+                        <i class="fas fa-shield"></i> Privacy & Safety
+                    </a></li>
+                </ul>
+            </div>
+
+            <!-- Content Area -->
+            <div class="col-lg-9">
+                <!-- Profile Section -->
+                <div id="profile" class="settings-section active">
+                    <h2 class="tab-title"><i class="fas fa-user-circle"></i> Profile Information</h2>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-image"></i> Profile Picture</h3>
+                        <div class="profile-img-wrapper">
+                            <img src="<%= user.profileImageURL || '/imgs/default.png' %>" 
+                                 alt="Profile" 
+                                 class="profile-img"
+                                 id="profilePreview"
+                                 onerror="this.src='/imgs/default.png';">
+                            <div>
+                                <label class="img-edit-label" for="profileImageInput">
+                                    <i class="fas fa-camera"></i> Change Photo
+                                </label>
+                                <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
+                            </div>
+                            <p class="settings-description mt-2">JPG, PNG or GIF. Max 5MB.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-user-edit"></i> Basic Information</h3>
+                        <form id="profileForm">
+                            <div class="settings-group">
+                                <label for="fullName">Full Name *</label>
+                                <input type="text" id="fullName" name="fullName" class="form-control" 
+                                       value="<%= user.fullName %>" required>
+                            </div>
+
+                            <div class="settings-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" class="form-control" 
+                                       value="<%= user.email %>" disabled>
+                                <p class="settings-description">Email cannot be changed</p>
+                            </div>
+
+                            <div class="settings-group">
+                                <label for="bio">Bio</label>
+                                <textarea id="bio" name="bio" class="form-control" rows="4" 
+                                          maxlength="500" placeholder="Tell us about yourself..."><%= user.bio || '' %></textarea>
+                                <p class="settings-description">
+                                    <span id="bioCount">0</span>/500 characters
+                                </p>
+                            </div>
+
+                            <div class="settings-group">
+                                <label for="website">Website URL</label>
+                                <input type="url" id="website" name="website" class="form-control" 
+                                       value="<%= user.website || '' %>" placeholder="https://yourwebsite.com">
+                                <p class="settings-description">Include https:// or http://</p>
+                            </div>
+
+                            <div class="settings-group">
+                                <label for="location">Location</label>
+                                <input type="text" id="location" name="location" class="form-control" 
+                                       value="<%= user.location || '' %>" placeholder="City, Country">
+                            </div>
+
+                            <button type="submit" class="btn-save">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Password Section -->
+                <div id="password" class="settings-section">
+                    <h2 class="tab-title"><i class="fas fa-lock"></i> Password & Security</h2>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-key"></i> Change Password</h3>
+                        <% if (user.googleId && !user.password) { %>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> 
+                                Your account uses Google Sign-In. Password changes are not available for this authentication method.
+                            </div>
+                        <% } else { %>
+                            <form id="passwordForm">
+                                <div class="settings-group">
+                                    <label for="currentPassword">Current Password *</label>
+                                    <input type="password" id="currentPassword" name="currentPassword" class="form-control" required>
+                                </div>
+
+                                <div class="settings-group">
+                                    <label for="newPassword">New Password *</label>
+                                    <input type="password" id="newPassword" name="newPassword" class="form-control" 
+                                           placeholder="At least 6 characters" minlength="6" required>
+                                </div>
+
+                                <div class="settings-group">
+                                    <label for="confirmPassword">Confirm Password *</label>
+                                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>
+                                </div>
+
+                                <button type="submit" class="btn-save">
+                                    <i class="fas fa-save"></i> Update Password
+                                </button>
+                            </form>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Preferences Section -->
+                <div id="preferences" class="settings-section">
+                    <h2 class="tab-title"><i class="fas fa-palette"></i> Preferences</h2>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-moon"></i> Theme Settings</h3>
+                        <div class="toggle-switch">
+                            <label for="darkModeToggle">Dark Mode</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="darkModeToggle">
+                            </div>
+                        </div>
+                        <p class="settings-description">
+                            <i class="fas fa-lightbulb"></i> Dark mode reduces eye strain in low-light environments
+                        </p>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-sliders-h"></i> Display Options</h3>
+                        <div class="settings-group">
+                            <label for="layoutPreference">Preferred Layout</label>
+                            <select id="layoutPreference" class="form-select">
+                                <option value="compact">Compact</option>
+                                <option value="comfortable" selected>Comfortable</option>
+                                <option value="spacious">Spacious</option>
+                            </select>
+                            <p class="settings-description">Choose your preferred content layout</p>
+                        </div>
+
+                        <div class="settings-group">
+                            <label for="fontSizePreference">Font Size</label>
+                            <select id="fontSizePreference" class="form-select">
+                                <option value="small">Small</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+
+                        <button type="button" class="btn-save" onclick="savePreferences()">
+                            <i class="fas fa-save"></i> Save Preferences
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div id="notifications" class="settings-section">
+                    <h2 class="tab-title"><i class="fas fa-bell"></i> Notifications</h2>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-envelope"></i> Email Notifications</h3>
+                        <div class="toggle-switch">
+                            <div>
+                                <label for="emailComments">Comments on Your Blogs</label>
+                                <p class="settings-description">Get notified when someone comments on your blog</p>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="emailComments" 
+                                       <%= user.notificationSettings?.emailOnComment ? 'checked' : '' %>>
+                            </div>
+                        </div>
+
+                        <div class="toggle-switch">
+                            <div>
+                                <label for="emailFollowers">New Followers</label>
+                                <p class="settings-description">Get notified when someone follows you</p>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="emailFollowers"
+                                       <%= user.notificationSettings?.emailOnNewFollower ? 'checked' : '' %>>
+                            </div>
+                        </div>
+
+                        <div class="toggle-switch">
+                            <div>
+                                <label for="emailDigest">Weekly Digest</label>
+                                <p class="settings-description">Receive a summary of your blog activity</p>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="emailDigest"
+                                       <%= user.notificationSettings?.emailDigest ? 'checked' : '' %>>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-save mt-3" onclick="saveNotifications()">
+                            <i class="fas fa-save"></i> Save Notification Settings
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Privacy Section -->
+                <div id="privacy" class="settings-section">
+                    <h2 class="tab-title"><i class="fas fa-shield"></i> Privacy & Safety</h2>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-eye-slash"></i> Privacy Control</h3>
+                        <div class="settings-group">
+                            <label>Profile Visibility</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="profileVisibility" 
+                                       id="profilePublic" value="public" checked>
+                                <label class="form-check-label" for="profilePublic">
+                                    Public - Anyone can see your profile
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="profileVisibility" 
+                                       id="profileFollowersOnly" value="followers">
+                                <label class="form-check-label" for="profileFollowersOnly">
+                                    Followers Only - Only followers can see your profile
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-clock-history"></i> Login Activity</h3>
+                        <p class="settings-description">Last login: <%= new Date(user.updatedAt).toLocaleString() %></p>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+                        <div class="danger-zone">
+                            <h4><i class="fas fa-trash"></i> Delete Account</h4>
+                            <p>Once you delete your account, there is no going back. Please be certain.</p>
+                            <p>This action will:</p>
+                            <ul style="margin-left: 1.5rem; color: #991b1b;">
+                                <li>Delete your profile permanently</li>
+                                <li>Delete all your blogs</li>
+                                <li>Remove you from all followers</li>
+                                <li>This action is irreversible</li>
+                            </ul>
+                            <button type="button" class="btn-danger-custom mt-3" onclick="deleteAccount()">
+                                <i class="fas fa-trash"></i> Delete My Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success/Error Messages -->
+                <div class="success-message" id="successMessage"></div>
+                <div class="error-message" id="errorMessage"></div>
+            </div>
+        </div>
+    </div>
+
+    <%- include("./partials/scripts") %>
+
+    <script>
+        // ====================== SETTINGS NAVIGATION ======================
+        document.querySelectorAll('.settings-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all links and sections
+                document.querySelectorAll('.settings-link').forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+                
+                // Add active class to clicked link
+                link.classList.add('active');
+                
+                // Show corresponding section
+                const sectionId = link.getAttribute('data-section');
+                document.getElementById(sectionId).classList.add('active');
+            });
+        });
+
+        // ====================== PROFILE IMAGE UPLOAD ======================
+        document.getElementById('profileImageInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('profilePreview').src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // Upload
+            const formData = new FormData();
+            formData.append('profileImage', file);
+
+            try {
+                const res = await axios.post('/user/profile/upload-image', formData);
+                if (res.data.success) {
+                    showSuccess('Profile picture updated successfully');
+                }
+            } catch (error) {
+                showError(error.response?.data?.message || 'Failed to upload image');
+            }
+        });
+
+        // ====================== PROFILE FORM SUBMISSION ======================
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                bio: document.getElementById('bio').value,
+                website: document.getElementById('website').value,
+                location: document.getElementById('location').value
+            };
+
+            try {
+                const res = await axios.put('/user/profile/update', formData);
+                if (res.data.success) {
+                    showSuccess('Profile updated successfully');
+                }
+            } catch (error) {
+                showError(error.response?.data?.message || 'Failed to update profile');
+            }
+        });
+
+        // ====================== BIO CHARACTER COUNT ======================
+        document.getElementById('bio').addEventListener('input', function() {
+            document.getElementById('bioCount').textContent = this.value.length;
+        });
+
+        // ====================== PASSWORD FORM SUBMISSION ======================
+        document.getElementById('passwordForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                showError('Passwords do not match');
+                return;
+            }
+
+            try {
+                const res = await axios.post('/user/profile/change-password', {
+                    currentPassword: document.getElementById('currentPassword').value,
+                    newPassword: newPassword
+                });
+
+                if (res.data.success) {
+                    showSuccess('Password changed successfully');
+                    document.getElementById('passwordForm').reset();
+                }
+            } catch (error) {
+                showError(error.response?.data?.message || 'Failed to change password');
+            }
+        });
+
+        // ====================== DARK MODE TOGGLE ======================
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const isDarkMode = localStorage.getItem('darkMode') === 'true' || document.body.classList.contains('dark-mode');
+        darkModeToggle.checked = isDarkMode;
+
+        darkModeToggle.addEventListener('change', async function() {
+            const isDark = this.checked;
+            localStorage.setItem('darkMode', isDark);
+            document.body.classList.toggle('dark-mode', isDark);
+
+            try {
+                await axios.put('/user/profile/update', {
+                    theme: isDark ? 'dark' : 'light'
+                });
+            } catch (error) {
+                console.error('Failed to save theme preference:', error);
+            }
+        });
+
+        // ====================== SAVE PREFERENCES ======================
+        function savePreferences() {
+            const layout = document.getElementById('layoutPreference').value;
+            const fontSize = document.getElementById('fontSizePreference').value;
+
+            localStorage.setItem('layoutPreference', layout);
+            localStorage.setItem('fontSize', fontSize);
+
+            showSuccess('Preferences saved successfully');
+        }
+
+        // ====================== SAVE NOTIFICATIONS ======================
+        function saveNotifications() {
+            const settings = {
+                emailOnComment: document.getElementById('emailComments').checked,
+                emailOnNewFollower: document.getElementById('emailFollowers').checked,
+                emailDigest: document.getElementById('emailDigest').checked
+            };
+
+            // Send to server (if you have an endpoint for this)
+            console.log('Notification settings:', settings);
+            showSuccess('Notification settings saved');
+        }
+
+        // ====================== DELETE ACCOUNT ======================
+        async function deleteAccount() {
+            const confirmed = await confirmAction(
+                '⚠️ Are you absolutely sure you want to delete your account? This action cannot be undone. All your blogs and data will be permanently deleted.'
+            );
+
+            if (!confirmed) return;
+
+            try {
+                const res = await axios.delete('/user/profile/delete-account');
+                if (res.data.success) {
+                    showSuccess('Account deleted. Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                }
+            } catch (error) {
+                showError(error.response?.data?.message || 'Failed to delete account');
+            }
+        }
+
+        // ====================== HELPER FUNCTIONS ======================
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 5000);
+        }
+
+        // Initialize bio character count
+        document.getElementById('bioCount').textContent = document.getElementById('bio').value.length;
+    </script>
+</body>
+</html>
