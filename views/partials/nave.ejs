@@ -85,6 +85,10 @@
                 <div class="drawer-icon green"><i class="fas fa-pen"></i></div>
                 <span>Post Blog</span>
             </a>
+            <a href="/user/profile/settings" class="drawer-item">
+                <div class="drawer-icon purple"><i class="fas fa-cog"></i></div>
+                <span>Settings</span>
+            </a>
             <div class="drawer-accordion">
                 <button class="drawer-accordion-trigger" onclick="toggleAccordion(this)">
                     <div class="drawer-icon yellow"><i class="fas fa-envelope"></i></div>
@@ -118,9 +122,9 @@
                     <i class="fas fa-chevron-down accordion-arrow"></i>
                 </button>
                 <div class="drawer-accordion-content">
-                    <a href="/profile/<%= locals.user._id %>?tab=settings#password" class="drawer-sub-item"><i class="fas fa-lock"></i> Change Password</a>
-                    <a href="/profile/<%= locals.user._id %>?tab=settings#profile" class="drawer-sub-item"><i class="fas fa-user-edit"></i> Edit Name</a>
-                    <button class="drawer-sub-item text-danger" onclick="deleteAccountFromDrawer()"><i class="fas fa-trash"></i> Delete Account</button>
+                    <a href="/user/profile/settings" class="drawer-sub-item"><i class="fas fa-lock"></i> Change Password</a>
+                    <a href="/user/profile/settings" class="drawer-sub-item"><i class="fas fa-user-edit"></i> Edit Name</a>
+                    <a href="/user/profile/settings" class="drawer-sub-item text-danger"><i class="fas fa-trash"></i> Delete Account</a>
                 </div>
             </div>
             <% if (locals.user.role === "ADMIN") { %>
@@ -279,8 +283,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
 window.toggleAccordion=function(btn){const acc=btn.closest('.drawer-accordion'),was=acc.classList.contains('open');document.querySelectorAll('.drawer-accordion').forEach(a=>a.classList.remove('open'));if(!was)acc.classList.add('open');};
 async function loadDrawerNotifCount(){try{const r=await fetch('/notifications/unread/count'),d=await r.json();if(d.success&&d.unreadCount>0){const b=document.getElementById('drawerNotifBadge');if(b){b.textContent=d.unreadCount>99?'99+':d.unreadCount;b.style.display='inline-block';}}}catch(e){}}
 window.saveNotifPrefs=async function(){const s={emailOnComment:document.getElementById('prefComment')?.checked||false,emailOnNewFollower:document.getElementById('prefFollow')?.checked||false,emailOnLike:document.getElementById('prefLike')?.checked||false,emailDigest:document.getElementById('prefDigest')?.checked||false};try{if(typeof axios!=='undefined')await axios.put('/user/profile/update',{notificationSettings:s});if(typeof notify!=='undefined')notify.success('Notification preferences saved!');else alert('Notification preferences saved!');}catch(err){if(typeof notify!=='undefined')notify.success('Preferences saved locally');else alert('Preferences saved locally');}};
-window.deleteAccountFromDrawer=async function(){const c=confirm('⚠️ Are you absolutely sure? This will permanently delete your account and all your blogs. This action cannot be undone.');if(!c)return;try{const r=await fetch('/user/profile/delete-account',{method:'DELETE'}),d=await r.json();if(d.success){alert('Account deleted. Redirecting...');window.location.href='/';}else alert(d.message||'Failed to delete account');}catch(e){alert('Failed to delete account. Please try again.');}};
+window.deleteAccountFromDrawer=async function(){const c=confirm('Are you absolutely sure? This will permanently delete your account and all your blogs. This action cannot be undone.');if(!c)return;try{const r=await fetch('/user/profile/delete-account',{method:'DELETE'}),d=await r.json();if(d.success){alert('Account deleted. Redirecting...');window.location.href='/';}else alert(d.message||'Failed to delete account');}catch(e){alert('Failed to delete account. Please try again.');}};
 const mobileToggle=document.getElementById('mobileToggle'),mobileMenu=document.getElementById('mobileMenu'),mobileClose=document.getElementById('mobileClose');
 if(mobileToggle&&mobileMenu){mobileToggle.addEventListener('click',()=>{mobileToggle.classList.toggle('active');mobileMenu.classList.toggle('active');});if(mobileClose)mobileClose.addEventListener('click',()=>{mobileToggle.classList.remove('active');mobileMenu.classList.remove('active');});}
 </script>
-
