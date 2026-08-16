@@ -1,7 +1,6 @@
 <!-- Modern Premium Navigation -->
 <nav class="main-nav" id="mainNav">
     <div class="nav-container">
-        <!-- Logo -->
         <a href="/" class="nav-brand">
             <div class="brand-icon">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -13,1234 +12,275 @@
             </div>
             <span class="brand-text">Blogify</span>
         </a>
-
-        <!-- Desktop Navigation -->
         <div class="nav-links-desktop">
             <a href="/" class="nav-link <%= locals.activePage === 'home' ? 'active' : '' %>">
-                <i class="fas fa-compass"></i>
-                <span>Explore</span>
+                <i class="fas fa-compass"></i><span>Explore</span>
             </a>
             <% if (locals.user) { %>
-                <a href="/blogs/add-new" class="nav-link">
-                    <i class="fas fa-pen-nib"></i>
-                    <span>Write</span>
-                </a>
-                <a href="/profile/<%= locals.user._id %>" class="nav-link">
-                    <i class="fas fa-layer-group"></i>
-                    <span>My Blogs</span>
-                </a>
+                <a href="/blogs/add-new" class="nav-link"><i class="fas fa-pen-nib"></i><span>Write</span></a>
+                <a href="/profile/<%= locals.user._id %>" class="nav-link"><i class="fas fa-layer-group"></i><span>My Blogs</span></a>
             <% } %>
         </div>
-
-        <!-- Right Section -->
         <div class="nav-actions">
-            <!-- Search Toggle -->
-            <button class="nav-btn search-toggle" id="searchToggle" title="Search (Ctrl+K)">
-                <i class="fas fa-search"></i>
-            </button>
-
+            <button class="nav-btn search-toggle" id="searchToggle" title="Search"><i class="fas fa-search"></i></button>
             <% if (locals.user) { %>
-                <!-- Notifications -->
-                <button class="nav-btn notif-btn" id="notificationBell" title="Notifications">
-                    <i class="far fa-bell"></i>
-                    <span class="notif-dot" id="notificationBadge" style="display: none;">
-                        <span id="notificationCount">0</span>
-                    </span>
-                </button>
-
-                <!-- Theme Toggle -->
-                <button class="nav-btn theme-btn" id="themeToggle" title="Toggle Theme">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                </button>
-
-                <!-- User Menu -->
+                <button class="nav-btn theme-btn" id="themeToggle" title="Toggle Theme"><i class="fas fa-moon" id="themeIcon"></i></button>
                 <div class="user-menu">
                     <button class="user-trigger" id="userMenuTrigger">
-                        <img src="<%= locals.user.profileImageURL || '/imgs/default.png' %>" 
-                             alt="<%= locals.user.fullName %>"
-                             onerror="this.src='/imgs/default.png';">
-                        <span class="user-name"><%= locals.user.fullName.split(' ')[0] %></span>
-                        <i class="fas fa-chevron-down"></i>
+                        <img src="<%= locals.user.profileImageURL || '/imgs/default.png' %>" alt="<%= locals.user.fullName %>" onerror="this.src='/imgs/default.png';">
                     </button>
-                    
-                    <!-- Dropdown -->
                     <div class="user-dropdown" id="userDropdown">
                         <div class="dropdown-header">
-                            <img src="<%= locals.user.profileImageURL || '/imgs/default.png' %>" 
-                                 alt="<%= locals.user.fullName %>"
-                                 onerror="this.src='/imgs/default.png';">
-                            <div>
-                                <h4><%= locals.user.fullName %></h4>
-                                <p>@<%= locals.user.email.split('@')[0] %></p>
-                            </div>
+                            <img src="<%= locals.user.profileImageURL || '/imgs/default.png' %>" alt="<%= locals.user.fullName %>" onerror="this.src='/imgs/default.png';">
+                            <div><h4><%= locals.user.fullName %></h4><p>@<%= locals.user.email.split('@')[0] %></p></div>
                         </div>
-                        
-                        <div class="dropdown-body">
-                            <a href="/profile/<%= locals.user._id %>" class="dropdown-item">
-                                <div class="item-icon blue">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <span>Profile</span>
-                            </a>
-                            <a href="/notifications" class="dropdown-item">
-                                <div class="item-icon purple">
-                                    <i class="fas fa-bell"></i>
-                                </div>
-                                <span>Notifications</span>
-                                <span class="item-badge" id="dropdownNotifBadge" style="display: none;">0</span>
-                            </a>
-                            <a href="/profile/<%= locals.user._id %>?tab=followers" class="dropdown-item">
-                                <div class="item-icon green">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <span>Followers</span>
-                                <span class="item-count"><%= locals.user.followers ? locals.user.followers.length : 0 %></span>
-                            </a>
-                            <a href="/profile/<%= locals.user._id %>?tab=following" class="dropdown-item">
-                                <div class="item-icon pink">
-                                    <i class="fas fa-heart"></i>
-                                </div>
-                                <span>Following</span>
-                                <span class="item-count"><%= locals.user.following ? locals.user.following.length : 0 %></span>
-                            </a>
-                            
-                            <div class="dropdown-divider"></div>
-                            
-                            <a href="/profile/<%= locals.user._id %>?tab=analytics" class="dropdown-item" id="analyticsBtn">
-                                <div class="item-icon orange">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                                <span>Analytics</span>
-                            </a>
-                            
-                            <!-- Settings Section -->
-                            <div class="dropdown-section-title">
-                                <i class="fas fa-cog"></i> Settings
-                            </div>
-                            <a href="/profile/<%= locals.user._id %>?tab=settings" class="dropdown-item">
-                                <div class="item-icon indigo">
-                                    <i class="fas fa-user-edit"></i>
-                                </div>
-                                <span>Profile Info</span>
-                            </a>
-                            <a href="/profile/<%= locals.user._id %>?tab=settings#password" class="dropdown-item">
-                                <div class="item-icon red">
-                                    <i class="fas fa-lock"></i>
-                                </div>
-                                <span>Password & Security</span>
-                            </a>
-                            <a href="/profile/<%= locals.user._id %>?tab=settings#preferences" class="dropdown-item">
-                                <div class="item-icon teal">
-                                    <i class="fas fa-palette"></i>
-                                </div>
-                                <span>Preferences</span>
-                            </a>
-                            <a href="/profile/<%= locals.user._id %>?tab=settings#notifications" class="dropdown-item">
-                                <div class="item-icon yellow">
-                                    <i class="fas fa-envelope"></i>
-                                </div>
-                                <span>Notifications</span>
-                            </a>
-                            <a href="/profile/<%= locals.user._id %>?tab=settings#privacy" class="dropdown-item">
-                                <div class="item-icon gray">
-                                    <i class="fas fa-shield-alt"></i>
-                                </div>
-                                <span>Privacy & Safety</span>
-                            </a>
-                            
-                            <% if (locals.user.role === "ADMIN") { %>
-                                <div class="dropdown-divider"></div>
-                                <a href="/admin/users" class="dropdown-item">
-                                    <div class="item-icon red">
-                                        <i class="fas fa-shield-alt"></i>
-                                    </div>
-                                    <span>Admin Panel</span>
-                                </a>
-                            <% } %>
-                        </div>
-                        
-                        <div class="dropdown-footer">
-                            <a href="/user/logout" class="logout-btn">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Sign Out</span>
-                            </a>
+                        <div class="dropdown-footer" style="border-top:none;padding-top:0;">
+                            <a href="/user/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Sign Out</span></a>
                         </div>
                     </div>
                 </div>
+                <button class="nav-btn options-toggle" id="optionsToggle" title="Menu"><i class="fas fa-bars"></i></button>
             <% } else { %>
                 <div class="auth-buttons">
                     <a href="/user/signin" class="btn-signin">Sign In</a>
                     <a href="/user/signup" class="btn-signup">Get Started</a>
                 </div>
+                <button class="mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></button>
             <% } %>
-
-            <!-- Mobile Menu Toggle -->
-            <button class="mobile-toggle" id="mobileToggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
         </div>
     </div>
-
-    <!-- Search Overlay -->
     <div class="search-overlay" id="searchOverlay">
         <div class="search-container">
             <i class="fas fa-search search-icon"></i>
-            <form method="GET" action="/">
-                <input type="search" name="search" placeholder="Search articles, topics, authors..." autofocus>
-            </form>
-            <button class="search-close" id="searchClose">
-                <i class="fas fa-times"></i>
-            </button>
+            <form method="GET" action="/"><input type="search" name="search" placeholder="Search articles, topics, authors..." autofocus></form>
+            <button class="search-close" id="searchClose"><i class="fas fa-times"></i></button>
         </div>
         <div class="search-backdrop"></div>
     </div>
 </nav>
 
-<!-- Mobile Menu -->
-<div class="mobile-menu" id="mobileMenu">
-    <div class="mobile-header">
-        <span class="mobile-title">Menu</span>
-        <button class="mobile-close" id="mobileClose">
-            <i class="fas fa-times"></i>
-        </button>
+<div class="options-drawer" id="optionsDrawer">
+    <div class="drawer-header">
+        <span class="drawer-title">Menu</span>
+        <button class="drawer-close" id="drawerClose"><i class="fas fa-times"></i></button>
     </div>
-    <div class="mobile-links">
-        <a href="/" class="mobile-link">
-            <i class="fas fa-compass"></i>
-            <span>Explore</span>
-        </a>
+    <div class="drawer-body">
         <% if (locals.user) { %>
-            <a href="/blogs/add-new" class="mobile-link">
-                <i class="fas fa-pen-nib"></i>
-                <span>Write</span>
-            </a>
-            <a href="/profile/<%= locals.user._id %>" class="mobile-link">
-                <i class="fas fa-layer-group"></i>
-                <span>My Blogs</span>
-            </a>
-            <a href="/notifications" class="mobile-link">
-                <i class="fas fa-bell"></i>
+            <a href="/notifications" class="drawer-item">
+                <div class="drawer-icon purple"><i class="fas fa-bell"></i></div>
                 <span>Notifications</span>
-                <span class="mobile-badge" id="mobileNotifBadge" style="display: none;">0</span>
+                <span class="drawer-badge" id="drawerNotifBadge" style="display:none;">0</span>
             </a>
-            <div class="mobile-divider"></div>
-            <a href="/profile/<%= locals.user._id %>" class="mobile-link">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
+            <a href="/profile/<%= locals.user._id %>" class="drawer-item">
+                <div class="drawer-icon blue"><i class="fas fa-user"></i></div>
+                <span>Profile Visit</span>
             </a>
-            
-            <!-- Mobile Settings Section -->
-            <div class="mobile-section-title">Settings</div>
-            <a href="/profile/<%= locals.user._id %>?tab=settings" class="mobile-link">
-                <i class="fas fa-user-edit"></i>
-                <span>Profile Info</span>
+            <a href="/profile/<%= locals.user._id %>?tab=analytics" class="drawer-item">
+                <div class="drawer-icon orange"><i class="fas fa-chart-line"></i></div>
+                <span>Analytics</span>
             </a>
-            <a href="/profile/<%= locals.user._id %>?tab=settings#password" class="mobile-link">
-                <i class="fas fa-lock"></i>
-                <span>Password & Security</span>
+            <div class="drawer-divider"></div>
+            <div class="drawer-section-title"><i class="fas fa-cog"></i> Settings</div>
+            <a href="/blogs/add-new" class="drawer-item">
+                <div class="drawer-icon green"><i class="fas fa-pen"></i></div>
+                <span>Post Blog</span>
             </a>
-            <a href="/profile/<%= locals.user._id %>?tab=settings#preferences" class="mobile-link">
-                <i class="fas fa-palette"></i>
-                <span>Preferences</span>
-            </a>
-            <a href="/profile/<%= locals.user._id %>?tab=settings#notifications" class="mobile-link">
-                <i class="fas fa-envelope"></i>
-                <span>Notifications</span>
-            </a>
-            <a href="/profile/<%= locals.user._id %>?tab=settings#privacy" class="mobile-link">
-                <i class="fas fa-shield-alt"></i>
-                <span>Privacy & Safety</span>
-            </a>
-            
-            <div class="mobile-divider"></div>
-            <a href="/user/logout" class="mobile-link text-danger">
-                <i class="fas fa-sign-out-alt"></i>
+            <div class="drawer-accordion">
+                <button class="drawer-accordion-trigger" onclick="toggleAccordion(this)">
+                    <div class="drawer-icon yellow"><i class="fas fa-envelope"></i></div>
+                    <span>Notification Preferences</span>
+                    <i class="fas fa-chevron-down accordion-arrow"></i>
+                </button>
+                <div class="drawer-accordion-content">
+                    <label class="drawer-check-row">
+                        <span>Email when someone comments</span>
+                        <input type="checkbox" class="drawer-checkbox" id="prefComment" <%= locals.user && locals.user.notificationSettings && locals.user.notificationSettings.emailOnComment ? 'checked' : '' %>>
+                    </label>
+                    <label class="drawer-check-row">
+                        <span>Email when someone follows me</span>
+                        <input type="checkbox" class="drawer-checkbox" id="prefFollow" <%= locals.user && locals.user.notificationSettings && locals.user.notificationSettings.emailOnNewFollower ? 'checked' : '' %>>
+                    </label>
+                    <label class="drawer-check-row">
+                        <span>Email when someone likes my blog</span>
+                        <input type="checkbox" class="drawer-checkbox" id="prefLike" <%= locals.user && locals.user.notificationSettings && locals.user.notificationSettings.emailOnLike ? 'checked' : '' %>>
+                    </label>
+                    <label class="drawer-check-row">
+                        <span>Weekly digest of activity</span>
+                        <input type="checkbox" class="drawer-checkbox" id="prefDigest" <%= locals.user && locals.user.notificationSettings && locals.user.notificationSettings.emailDigest ? 'checked' : '' %>>
+                    </label>
+                    <button class="drawer-save-btn" onclick="saveNotifPrefs()"><i class="fas fa-save"></i> Save Preferences</button>
+                </div>
+            </div>
+            <div class="drawer-accordion">
+                <button class="drawer-accordion-trigger" onclick="toggleAccordion(this)">
+                    <div class="drawer-icon red"><i class="fas fa-shield-alt"></i></div>
+                    <span>Privacy & Security</span>
+                    <i class="fas fa-chevron-down accordion-arrow"></i>
+                </button>
+                <div class="drawer-accordion-content">
+                    <a href="/profile/<%= locals.user._id %>?tab=settings#password" class="drawer-sub-item"><i class="fas fa-lock"></i> Change Password</a>
+                    <a href="/profile/<%= locals.user._id %>?tab=settings#profile" class="drawer-sub-item"><i class="fas fa-user-edit"></i> Edit Name</a>
+                    <button class="drawer-sub-item text-danger" onclick="deleteAccountFromDrawer()"><i class="fas fa-trash"></i> Delete Account</button>
+                </div>
+            </div>
+            <% if (locals.user.role === "ADMIN") { %>
+                <div class="drawer-divider"></div>
+                <a href="/admin/users" class="drawer-item">
+                    <div class="drawer-icon red"><i class="fas fa-shield-alt"></i></div>
+                    <span>Admin Panel</span>
+                </a>
+            <% } %>
+            <div class="drawer-divider"></div>
+            <a href="/user/logout" class="drawer-item text-danger">
+                <div class="drawer-icon gray"><i class="fas fa-sign-out-alt"></i></div>
                 <span>Sign Out</span>
             </a>
         <% } else { %>
+            <a href="/user/signin" class="drawer-item"><div class="drawer-icon blue"><i class="fas fa-sign-in-alt"></i></div><span>Sign In</span></a>
+            <a href="/user/signup" class="drawer-item"><div class="drawer-icon green"><i class="fas fa-rocket"></i></div><span>Get Started</span></a>
+        <% } %>
+    </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+<div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-header"><span class="mobile-title">Menu</span><button class="mobile-close" id="mobileClose"><i class="fas fa-times"></i></button></div>
+    <div class="mobile-links">
+        <a href="/" class="mobile-link"><i class="fas fa-compass"></i><span>Explore</span></a>
+        <% if (!locals.user) { %>
             <div class="mobile-divider"></div>
-            <a href="/user/signin" class="mobile-link">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Sign In</span>
-            </a>
-            <a href="/user/signup" class="mobile-link text-primary fw-bold">
-                <i class="fas fa-rocket"></i>
-                <span>Get Started</span>
-            </a>
+            <a href="/user/signin" class="mobile-link"><i class="fas fa-sign-in-alt"></i><span>Sign In</span></a>
+            <a href="/user/signup" class="mobile-link text-primary fw-bold"><i class="fas fa-rocket"></i><span>Get Started</span></a>
         <% } %>
     </div>
 </div>
 
-<!-- Notification Panel -->
-<div class="notif-panel" id="notifPanel">
-    <div class="notif-header">
-        <h3>
-            <i class="fas fa-bell"></i>
-            Notifications
-        </h3>
-        <div class="notif-actions">
-            <button class="btn-markall" onclick="markAllReadPanel()">Mark all read</button>
-            <button class="btn-close-panel" id="closeNotifPanel">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-    <div class="notif-body" id="notifBody">
-        <div class="notif-empty">
-            <i class="far fa-bell"></i>
-            <p>No notifications yet</p>
-        </div>
-    </div>
-    <div class="notif-footer">
-        <a href="/notifications" class="btn-viewall">
-            View All
-            <i class="fas fa-arrow-right"></i>
-        </a>
-    </div>
-</div>
-<div class="panel-backdrop" id="panelBackdrop"></div>
-
 <style>
-    /* ===== CSS VARIABLES ===== */
-    :root {
-        --nav-bg: rgba(255, 255, 255, 0.85);
-        --nav-border: rgba(0, 0, 0, 0.06);
-        --nav-text: #1a1a2e;
-        --nav-text-secondary: #6b7280;
-        --nav-hover: rgba(99, 102, 241, 0.08);
-        --nav-active: #6366f1;
-        --nav-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-        --glass-bg: rgba(255, 255, 255, 0.72);
-        --card-bg: #ffffff;
-        --divider: rgba(0, 0, 0, 0.06);
-    }
-
-    [data-theme="dark"] {
-        --nav-bg: rgba(15, 15, 26, 0.9);
-        --nav-border: rgba(255, 255, 255, 0.06);
-        --nav-text: #f1f5f9;
-        --nav-text-secondary: #94a3b8;
-        --nav-hover: rgba(129, 140, 248, 0.12);
-        --nav-active: #818cf8;
-        --nav-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-        --glass-bg: rgba(15, 15, 26, 0.8);
-        --card-bg: #1a1a2e;
-        --divider: rgba(255, 255, 255, 0.08);
-    }
-
-    /* ===== BASE NAVBAR ===== */
-    .main-nav {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 1000;
-        background: var(--nav-bg);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border-bottom: 1px solid var(--nav-border);
-        box-shadow: var(--nav-shadow);
-        transition: all 0.3s ease;
-    }
-
-    .nav-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 24px;
-        height: 64px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
-    }
-
-    /* ===== BRAND ===== */
-    .nav-brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        color: var(--nav-text);
-        font-weight: 800;
-        font-size: 1.4rem;
-        letter-spacing: -0.5px;
-        flex-shrink: 0;
-    }
-
-    .brand-icon {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-
-    .brand-icon svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    .brand-text {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    /* ===== DESKTOP LINKS ===== */
-    .nav-links-desktop {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        flex: 1;
-        justify-content: center;
-    }
-
-    .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border-radius: 12px;
-        color: var(--nav-text-secondary);
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        position: relative;
-    }
-
-    .nav-link:hover {
-        background: var(--nav-hover);
-        color: var(--nav-active);
-    }
-
-    .nav-link.active {
-        background: var(--nav-hover);
-        color: var(--nav-active);
-        font-weight: 600;
-    }
-
-    .nav-link i {
-        font-size: 0.95rem;
-    }
-
-    /* ===== ACTIONS ===== */
-    .nav-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .nav-btn {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        border: none;
-        background: transparent;
-        color: var(--nav-text-secondary);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        position: relative;
-        font-size: 1.05rem;
-    }
-
-    .nav-btn:hover {
-        background: var(--nav-hover);
-        color: var(--nav-active);
-    }
-
-    .notif-dot {
-        position: absolute;
-        top: 6px;
-        right: 6px;
-        background: #ef4444;
-        color: white;
-        font-size: 0.65rem;
-        font-weight: 700;
-        min-width: 18px;
-        height: 18px;
-        border-radius: 9px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 5px;
-        border: 2px solid var(--nav-bg);
-    }
-
-    /* ===== USER MENU ===== */
-    .user-menu {
-        position: relative;
-    }
-
-    .user-trigger {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 6px 12px 6px 6px;
-        border-radius: 50px;
-        border: 1px solid var(--nav-border);
-        background: var(--glass-bg);
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .user-trigger:hover {
-        border-color: var(--nav-active);
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-
-    .user-trigger img {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .user-name {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--nav-text);
-    }
-
-    .user-trigger .fa-chevron-down {
-        font-size: 0.75rem;
-        color: var(--nav-text-secondary);
-        transition: transform 0.2s ease;
-    }
-
-    .user-menu.open .fa-chevron-down {
-        transform: rotate(180deg);
-    }
-
-    /* ===== DROPDOWN ===== */
-    .user-dropdown {
-        position: absolute;
-        top: calc(100% + 10px);
-        right: 0;
-        width: 300px;
-        background: var(--card-bg);
-        border: 1px solid var(--divider);
-        border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-10px);
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 1001;
-        overflow: hidden;
-    }
-
-    .user-menu.open .user-dropdown {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
-
-    .dropdown-header {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 20px;
-        border-bottom: 1px solid var(--divider);
-    }
-
-    .dropdown-header img {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid var(--nav-active);
-    }
-
-    .dropdown-header h4 {
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--nav-text);
-        margin: 0;
-    }
-
-    .dropdown-header p {
-        font-size: 0.8rem;
-        color: var(--nav-text-secondary);
-        margin: 4px 0 0;
-    }
-
-    .dropdown-body {
-        padding: 8px;
-        max-height: 460px;
-        overflow-y: auto;
-    }
-
-    .dropdown-section-title {
-        padding: 10px 12px 6px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--nav-text-secondary);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 4px;
-    }
-
-    .dropdown-section-title i {
-        font-size: 0.8rem;
-    }
-
-    .dropdown-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 12px;
-        border-radius: 10px;
-        text-decoration: none;
-        color: var(--nav-text);
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: all 0.15s ease;
-        position: relative;
-    }
-
-    .dropdown-item:hover {
-        background: var(--nav-hover);
-    }
-
-    .item-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.85rem;
-        flex-shrink: 0;
-    }
-
-    .item-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-    .item-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
-    .item-icon.green { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
-    .item-icon.pink { background: rgba(236, 72, 153, 0.1); color: #ec4899; }
-    .item-icon.orange { background: rgba(249, 115, 22, 0.1); color: #f97316; }
-    .item-icon.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-    .item-icon.gray { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
-    .item-icon.indigo { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
-    .item-icon.teal { background: rgba(20, 184, 166, 0.1); color: #14b8a6; }
-    .item-icon.yellow { background: rgba(234, 179, 8, 0.1); color: #eab308; }
-
-    .item-count, .item-badge {
-        margin-left: auto;
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 2px 8px;
-        border-radius: 20px;
-        background: var(--nav-hover);
-        color: var(--nav-text-secondary);
-    }
-
-    .item-badge {
-        background: #ef4444;
-        color: white;
-    }
-
-    .dropdown-divider {
-        height: 1px;
-        background: var(--divider);
-        margin: 8px;
-    }
-
-    .dropdown-footer {
-        padding: 12px;
-        border-top: 1px solid var(--divider);
-    }
-
-    .logout-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 10px;
-        border-radius: 10px;
-        text-decoration: none;
-        color: #ef4444;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.15s ease;
-    }
-
-    .logout-btn:hover {
-        background: rgba(239, 68, 68, 0.08);
-    }
-
-    /* ===== AUTH BUTTONS ===== */
-    .auth-buttons {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .btn-signin {
-        padding: 8px 18px;
-        border-radius: 10px;
-        text-decoration: none;
-        color: var(--nav-text);
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.2s ease;
-    }
-
-    .btn-signin:hover {
-        background: var(--nav-hover);
-    }
-
-    .btn-signup {
-        padding: 8px 18px;
-        border-radius: 10px;
-        text-decoration: none;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: white;
-        font-size: 0.9rem;
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
-        transition: all 0.2s ease;
-    }
-
-    .btn-signup:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-    }
-
-    /* ===== SEARCH OVERLAY ===== */
-    .search-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 999;
-        background: var(--nav-bg);
-        backdrop-filter: blur(20px);
-        padding: 16px 24px;
-        transform: translateY(-100%);
-        transition: transform 0.3s ease;
-    }
-
-    .search-overlay.active {
-        transform: translateY(0);
-    }
-
-    .search-container {
-        max-width: 700px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        position: relative;
-    }
-
-    .search-icon {
-        color: var(--nav-text-secondary);
-        font-size: 1.2rem;
-    }
-
-    .search-container form {
-        flex: 1;
-    }
-
-    .search-container input {
-        width: 100%;
-        border: none;
-        background: transparent;
-        color: var(--nav-text);
-        font-size: 1.1rem;
-        font-weight: 500;
-        outline: none;
-    }
-
-    .search-container input::placeholder {
-        color: var(--nav-text-secondary);
-    }
-
-    .search-close {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        border: none;
-        background: var(--nav-hover);
-        color: var(--nav-text-secondary);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .search-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.2);
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-        z-index: 998;
-    }
-
-    .search-overlay.active + .search-backdrop {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    /* ===== MOBILE MENU ===== */
-    .mobile-toggle {
-        display: none;
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        border: none;
-        background: transparent;
-        cursor: pointer;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-    }
-
-    .mobile-toggle span {
-        display: block;
-        width: 22px;
-        height: 2px;
-        background: var(--nav-text);
-        border-radius: 2px;
-        transition: all 0.3s ease;
-    }
-
-    .mobile-menu {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        width: 320px;
-        background: var(--card-bg);
-        z-index: 1002;
-        transform: translateX(100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        flex-direction: column;
-    }
-
-    .mobile-menu.active {
-        transform: translateX(0);
-    }
-
-    .mobile-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--divider);
-    }
-
-    .mobile-title {
-        font-weight: 700;
-        font-size: 1.1rem;
-        color: var(--nav-text);
-    }
-
-    .mobile-close {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        border: none;
-        background: var(--nav-hover);
-        color: var(--nav-text);
-        cursor: pointer;
-    }
-
-    .mobile-links {
-        flex: 1;
-        overflow-y: auto;
-        padding: 16px;
-    }
-
-    .mobile-link {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 14px 16px;
-        border-radius: 12px;
-        text-decoration: none;
-        color: var(--nav-text);
-        font-weight: 500;
-        margin-bottom: 4px;
-        position: relative;
-    }
-
-    .mobile-link:hover {
-        background: var(--nav-hover);
-    }
-
-    .mobile-link i {
-        width: 24px;
-        text-align: center;
-        color: var(--nav-text-secondary);
-    }
-
-    .mobile-badge {
-        margin-left: auto;
-        background: #ef4444;
-        color: white;
-        font-size: 0.75rem;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 20px;
-    }
-
-    .mobile-divider {
-        height: 1px;
-        background: var(--divider);
-        margin: 12px 8px;
-    }
-
-    .mobile-section-title {
-        padding: 12px 16px 8px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--nav-text-secondary);
-    }
-
-    /* ===== NOTIFICATION PANEL ===== */
-    .notif-panel {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        width: 380px;
-        background: var(--card-bg);
-        z-index: 1002;
-        transform: translateX(100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        flex-direction: column;
-    }
-
-    .notif-panel.active {
-        transform: translateX(0);
-    }
-
-    .notif-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--divider);
-    }
-
-    .notif-header h3 {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--nav-text);
-        margin: 0;
-    }
-
-    .notif-actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .btn-markall {
-        background: none;
-        border: none;
-        color: var(--nav-active);
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        padding: 6px 10px;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
-
-    .btn-markall:hover {
-        background: var(--nav-hover);
-    }
-
-    .btn-close-panel {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        border: none;
-        background: var(--nav-hover);
-        color: var(--nav-text);
-        cursor: pointer;
-    }
-
-    .notif-body {
-        flex: 1;
-        overflow-y: auto;
-        padding: 16px;
-    }
-
-    .notif-empty {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--nav-text-secondary);
-    }
-
-    .notif-empty i {
-        font-size: 3rem;
-        margin-bottom: 16px;
-        opacity: 0.3;
-    }
-
-    .notif-footer {
-        padding: 16px 24px;
-        border-top: 1px solid var(--divider);
-    }
-
-    .btn-viewall {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 12px;
-        border-radius: 12px;
-        background: var(--nav-hover);
-        color: var(--nav-active);
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-    }
-
-    .btn-viewall:hover {
-        background: var(--nav-active);
-        color: white;
-    }
-
-    .panel-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.3);
-        z-index: 1001;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .panel-backdrop.active {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 768px) {
-        .nav-links-desktop {
-            display: none;
-        }
-
-        .mobile-toggle {
-            display: flex;
-        }
-
-        .user-name {
-            display: none;
-        }
-
-        .notif-panel {
-            width: 100%;
-        }
-    }
+:root{--nav-bg:rgba(255,255,255,0.85);--nav-border:rgba(0,0,0,0.06);--nav-text:#1a1a2e;--nav-text-secondary:#6b7280;--nav-hover:rgba(99,102,241,0.08);--nav-active:#6366f1;--nav-shadow:0 4px 30px rgba(0,0,0,0.05);--glass-bg:rgba(255,255,255,0.72);--card-bg:#ffffff;--divider:rgba(0,0,0,0.06);}
+[data-theme="dark"]{--nav-bg:rgba(15,15,26,0.9);--nav-border:rgba(255,255,255,0.06);--nav-text:#f1f5f9;--nav-text-secondary:#94a3b8;--nav-hover:rgba(129,140,248,0.12);--nav-active:#818cf8;--nav-shadow:0 4px 30px rgba(0,0,0,0.3);--glass-bg:rgba(15,15,26,0.8);--card-bg:#1a1a2e;--divider:rgba(255,255,255,0.08);}
+.main-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--nav-border);box-shadow:var(--nav-shadow);transition:all 0.3s ease;}
+.nav-container{max-width:1400px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:24px;}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--nav-text);font-weight:800;font-size:1.4rem;letter-spacing:-0.5px;flex-shrink:0;}
+.brand-icon{width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 4px 12px rgba(99,102,241,0.3);}
+.brand-icon svg{width:20px;height:20px;}
+.brand-text{background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-links-desktop{display:flex;align-items:center;gap:4px;flex:1;justify-content:center;}
+.nav-link{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:12px;color:var(--nav-text-secondary);text-decoration:none;font-size:0.9rem;font-weight:500;transition:all 0.2s ease;}
+.nav-link:hover{background:var(--nav-hover);color:var(--nav-active);}
+.nav-link.active{background:var(--nav-hover);color:var(--nav-active);font-weight:600;}
+.nav-link i{font-size:1rem;}
+.nav-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.nav-btn{width:40px;height:40px;border-radius:12px;border:none;background:transparent;color:var(--nav-text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;font-size:1.1rem;}
+.nav-btn:hover{background:var(--nav-hover);color:var(--nav-active);transform:translateY(-1px);}
+.user-menu{position:relative;}
+.user-trigger{display:flex;align-items:center;padding:3px;border-radius:50%;border:2px solid var(--nav-border);background:var(--glass-bg);cursor:pointer;transition:all 0.2s ease;}
+.user-trigger:hover{border-color:var(--nav-active);box-shadow:0 0 0 3px var(--nav-hover);}
+.user-trigger img{width:34px;height:34px;border-radius:50%;object-fit:cover;}
+.user-dropdown{position:absolute;top:calc(100% + 10px);right:0;width:260px;background:var(--card-bg);border-radius:20px;border:1px solid var(--nav-border);box-shadow:0 20px 60px rgba(0,0,0,0.15);opacity:0;visibility:hidden;transform:translateY(-10px) scale(0.96);transition:all 0.25s cubic-bezier(0.4,0,0.2,1);z-index:1001;overflow:hidden;}
+.user-menu.open .user-dropdown{opacity:1;visibility:visible;transform:translateY(0) scale(1);}
+.dropdown-header{padding:20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--divider);}
+.dropdown-header img{width:48px;height:48px;border-radius:14px;object-fit:cover;}
+.dropdown-header h4{font-size:0.95rem;font-weight:700;color:var(--nav-text);margin:0;}
+.dropdown-header p{font-size:0.8rem;color:var(--nav-text-secondary);margin:4px 0 0;}
+.dropdown-footer{padding:12px;border-top:1px solid var(--divider);}
+.logout-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;border-radius:12px;color:#ef4444;text-decoration:none;font-size:0.9rem;font-weight:600;transition:all 0.2s ease;}
+.logout-btn:hover{background:rgba(239,68,68,0.08);}
+.auth-buttons{display:flex;align-items:center;gap:12px;}
+.btn-signin{padding:8px 20px;border-radius:12px;color:var(--nav-text);text-decoration:none;font-size:0.9rem;font-weight:500;transition:all 0.2s ease;}
+.btn-signin:hover{background:var(--nav-hover);color:var(--nav-active);}
+.btn-signup{padding:8px 20px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;text-decoration:none;font-size:0.9rem;font-weight:600;box-shadow:0 4px 12px rgba(99,102,241,0.3);transition:all 0.2s ease;}
+.btn-signup:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,0.4);}
+.search-overlay{position:fixed;top:0;left:0;right:0;z-index:1002;opacity:0;visibility:hidden;transition:all 0.3s ease;}
+.search-overlay.active{opacity:1;visibility:visible;}
+.search-container{position:relative;background:var(--card-bg);padding:20px 24px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--nav-border);transform:translateY(-100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);}
+.search-overlay.active .search-container{transform:translateY(0);}
+.search-icon{color:var(--nav-text-secondary);font-size:1.1rem;}
+.search-container form{flex:1;}
+.search-container input{width:100%;border:none;background:transparent;color:var(--nav-text);font-size:1.1rem;font-weight:500;outline:none;}
+.search-container input::placeholder{color:var(--nav-text-secondary);}
+.search-close{width:36px;height:36px;border-radius:10px;border:none;background:var(--nav-hover);color:var(--nav-text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;}
+.search-close:hover{background:var(--nav-active);color:white;}
+.search-backdrop{position:fixed;top:70px;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px);}
+.options-drawer{position:fixed;top:0;right:0;width:360px;max-width:90vw;height:100vh;background:var(--card-bg);z-index:1003;transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;border-left:1px solid var(--nav-border);}
+.options-drawer.active{transform:translateX(0);}
+.drawer-header{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--divider);}
+.drawer-title{font-size:1.2rem;font-weight:700;color:var(--nav-text);}
+.drawer-close{width:36px;height:36px;border-radius:10px;border:none;background:var(--nav-hover);color:var(--nav-text);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.drawer-body{flex:1;overflow-y:auto;padding:16px;}
+.drawer-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;color:var(--nav-text);text-decoration:none;font-size:0.95rem;font-weight:500;transition:all 0.2s ease;margin-bottom:4px;position:relative;}
+.drawer-item:hover{background:var(--nav-hover);}
+.drawer-item.text-danger{color:#ef4444;}
+.drawer-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;color:white;flex-shrink:0;}
+.drawer-icon.blue{background:linear-gradient(135deg,#3b82f6,#60a5fa);}
+.drawer-icon.purple{background:linear-gradient(135deg,#8b5cf6,#a78bfa);}
+.drawer-icon.green{background:linear-gradient(135deg,#10b981,#34d399);}
+.drawer-icon.orange{background:linear-gradient(135deg,#f59e0b,#fbbf24);}
+.drawer-icon.yellow{background:linear-gradient(135deg,#eab308,#facc15);}
+.drawer-icon.red{background:linear-gradient(135deg,#ef4444,#f87171);}
+.drawer-icon.gray{background:linear-gradient(135deg,#6b7280,#9ca3af);}
+.drawer-badge{margin-left:auto;background:#ef4444;color:white;font-size:0.7rem;font-weight:700;padding:2px 10px;border-radius:20px;}
+.drawer-divider{height:1px;background:var(--divider);margin:12px 8px;}
+.drawer-section-title{padding:12px 16px 8px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--nav-text-secondary);display:flex;align-items:center;gap:8px;}
+.drawer-accordion{margin-bottom:4px;}
+.drawer-accordion-trigger{width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:none;background:transparent;color:var(--nav-text);font-size:0.95rem;font-weight:500;cursor:pointer;transition:all 0.2s ease;text-align:left;}
+.drawer-accordion-trigger:hover{background:var(--nav-hover);}
+.accordion-arrow{margin-left:auto;font-size:0.75rem;color:var(--nav-text-secondary);transition:transform 0.25s ease;}
+.drawer-accordion.open .accordion-arrow{transform:rotate(180deg);}
+.drawer-accordion-content{max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease;padding:0 16px;}
+.drawer-accordion.open .drawer-accordion-content{max-height:400px;padding:8px 16px 16px;}
+.drawer-check-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;font-size:0.88rem;color:var(--nav-text);cursor:pointer;border-bottom:1px solid var(--divider);}
+.drawer-check-row:last-child{border-bottom:none;}
+.drawer-checkbox{width:20px;height:20px;accent-color:#6366f1;cursor:pointer;}
+.drawer-sub-item{display:flex;align-items:center;gap:10px;padding:10px 0;font-size:0.88rem;color:var(--nav-text);text-decoration:none;border-bottom:1px solid var(--divider);background:none;border:none;width:100%;text-align:left;cursor:pointer;font-family:inherit;}
+.drawer-sub-item:last-child{border-bottom:none;}
+.drawer-sub-item.text-danger{color:#ef4444;}
+.drawer-sub-item i{width:20px;text-align:center;color:var(--nav-text-secondary);}
+.drawer-save-btn{width:100%;margin-top:12px;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;}
+.drawer-save-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,0.3);}
+.drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);z-index:1002;opacity:0;visibility:hidden;transition:all 0.3s ease;}
+.drawer-backdrop.active{opacity:1;visibility:visible;}
+.mobile-toggle{display:none;width:40px;height:40px;border-radius:12px;border:none;background:transparent;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;}
+.mobile-toggle span{display:block;width:20px;height:2px;background:var(--nav-text);border-radius:2px;transition:all 0.3s ease;}
+.mobile-toggle.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+.mobile-toggle.active span:nth-child(2){opacity:0;}
+.mobile-toggle.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+.mobile-menu{position:fixed;top:0;right:0;width:320px;max-width:90vw;height:100vh;background:var(--card-bg);z-index:1003;transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;}
+.mobile-menu.active{transform:translateX(0);}
+.mobile-header{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--divider);}
+.mobile-title{font-size:1.2rem;font-weight:700;color:var(--nav-text);}
+.mobile-close{width:36px;height:36px;border-radius:10px;border:none;background:var(--nav-hover);color:var(--nav-text);cursor:pointer;}
+.mobile-links{flex:1;padding:16px;overflow-y:auto;}
+.mobile-link{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;color:var(--nav-text);text-decoration:none;font-size:0.95rem;font-weight:500;transition:all 0.2s ease;margin-bottom:4px;}
+.mobile-link:hover{background:var(--nav-hover);}
+.mobile-link i{width:36px;height:36px;border-radius:10px;background:var(--nav-hover);display:flex;align-items:center;justify-content:center;color:var(--nav-active);}
+.mobile-divider{height:1px;background:var(--divider);margin:12px 8px;}
+@media(max-width:991px){.nav-links-desktop{display:none;}.auth-buttons{display:none;}.mobile-toggle{display:flex;}}
+@media(max-width:576px){.nav-container{padding:0 16px;height:56px;}.brand-text{display:none;}.nav-brand{gap:0;}}
 </style>
 
 <script>
-    (function() {
-        // ===== DROPDOWN =====
-        const userMenuTrigger = document.getElementById('userMenuTrigger');
-        const userMenu = document.querySelector('.user-menu');
-        
-        if (userMenuTrigger && userMenu) {
-            userMenuTrigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                userMenu.classList.toggle('open');
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!userMenu.contains(e.target)) {
-                    userMenu.classList.remove('open');
-                }
-            });
-        }
-
-        // ===== SEARCH =====
-        const searchToggle = document.getElementById('searchToggle');
-        const searchOverlay = document.getElementById('searchOverlay');
-        const searchClose = document.getElementById('searchClose');
-        const searchBackdrop = document.querySelector('.search-backdrop');
-
-        if (searchToggle) {
-            searchToggle.addEventListener('click', () => {
-                searchOverlay.classList.add('active');
-                searchOverlay.querySelector('input').focus();
-            });
-        }
-
-        if (searchClose) {
-            searchClose.addEventListener('click', () => {
-                searchOverlay.classList.remove('active');
-            });
-        }
-
-        if (searchBackdrop) {
-            searchBackdrop.addEventListener('click', () => {
-                searchOverlay.classList.remove('active');
-            });
-        }
-
-        // ===== MOBILE MENU =====
-        const mobileToggle = document.getElementById('mobileToggle');
-        const mobileMenu = document.getElementById('mobileMenu');
-        const mobileClose = document.getElementById('mobileClose');
-
-        if (mobileToggle && mobileMenu) {
-            mobileToggle.addEventListener('click', () => {
-                mobileMenu.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
-        }
-
-        if (mobileClose && mobileMenu) {
-            mobileClose.addEventListener('click', () => {
-                mobileMenu.classList.remove('active');
-                document.body.style.overflow = '';
-            });
-        }
-
-        // ===== NOTIFICATION PANEL =====
-        const notifBell = document.getElementById('notificationBell');
-        const notifPanel = document.getElementById('notifPanel');
-        const closeNotifPanel = document.getElementById('closeNotifPanel');
-        const panelBackdrop = document.getElementById('panelBackdrop');
-
-        if (notifBell && notifPanel) {
-            notifBell.addEventListener('click', () => {
-                notifPanel.classList.add('active');
-                panelBackdrop.classList.add('active');
-                loadNotifications();
-            });
-        }
-
-        if (closeNotifPanel) {
-            closeNotifPanel.addEventListener('click', () => {
-                notifPanel.classList.remove('active');
-                panelBackdrop.classList.remove('active');
-            });
-        }
-
-        if (panelBackdrop) {
-            panelBackdrop.addEventListener('click', () => {
-                notifPanel.classList.remove('active');
-                panelBackdrop.classList.remove('active');
-            });
-        }
-
-        // ===== THEME TOGGLE =====
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = document.getElementById('themeIcon');
-        const html = document.documentElement;
-
-        function updateThemeIcon() {
-            const isDark = html.getAttribute('data-theme') === 'dark' || 
-                          (html.getAttribute('data-theme') === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-        }
-
-        if (themeToggle) {
-            themeToggle.addEventListener('click', async () => {
-                const current = html.getAttribute('data-theme') || 'light';
-                const next = current === 'dark' ? 'light' : 'dark';
-                html.setAttribute('data-theme', next);
-                document.body.classList.toggle('dark-mode', next === 'dark');
-                localStorage.setItem('theme', next);
-                updateThemeIcon();
-
-                try {
-                    await axios.put('/user/profile/update', { theme: next });
-                } catch (e) {
-                    console.error('Theme sync failed');
-                }
-            });
-        }
-
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        html.setAttribute('data-theme', savedTheme);
-        document.body.classList.toggle('dark-mode', savedTheme === 'dark');
-        updateThemeIcon();
-
-        // ===== NOTIFICATIONS FETCH =====
-        async function loadNotifications() {
-            try {
-                const res = await axios.get('/notifications');
-                if (res.data.success) {
-                    const notifs = res.data.notifications || [];
-                    const unread = notifs.filter(n => !n.read).length;
-                    
-                    const badge = document.getElementById('notificationBadge');
-                    const count = document.getElementById('notificationCount');
-                    const dropdownBadge = document.getElementById('dropdownNotifBadge');
-                    const mobileBadge = document.getElementById('mobileNotifBadge');
-                    
-                    if (unread > 0) {
-                        if (badge) badge.style.display = 'flex';
-                        if (count) count.textContent = unread > 99 ? '99+' : unread;
-                        if (dropdownBadge) { dropdownBadge.style.display = 'inline-flex'; dropdownBadge.textContent = unread; }
-                        if (mobileBadge) { mobileBadge.style.display = 'inline-flex'; mobileBadge.textContent = unread; }
-                    } else {
-                        if (badge) badge.style.display = 'none';
-                        if (dropdownBadge) dropdownBadge.style.display = 'none';
-                        if (mobileBadge) mobileBadge.style.display = 'none';
-                    }
-
-                    const notifBody = document.getElementById('notifBody');
-                    if (notifs.length === 0) {
-                        notifBody.innerHTML = '<div class=\"notif-empty\"><i class=\"far fa-bell\"></i><p>No notifications yet</p></div>';
-                    } else {
-                        notifBody.innerHTML = notifs.slice(0, 20).map(n => `
-                            <div class=\"notif-item ${n.read ? 'read' : 'unread'}\" onclick=\"markRead('${n._id}')\">
-                                <p>${n.message}</p>
-                                <small>${new Date(n.createdAt).toLocaleDateString()}</small>
-                            </div>
-                        `).join('');
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to load notifications');
-            }
-        }
-
-        window.markAllReadPanel = async function() {
-            try {
-                await axios.put('/notifications/all/read');
-                loadNotifications();
-            } catch (e) {
-                console.error(e);
-            }
-        };
-
-        // Initial load
-        loadNotifications();
-        setInterval(loadNotifications, 30000);
-    })();
+const themeToggle=document.getElementById('themeToggle'),themeIcon=document.getElementById('themeIcon'),html=document.documentElement;
+function applyTheme(t){html.setAttribute('data-theme',t);if(t==='dark'){themeIcon.className='fas fa-sun';themeToggle.style.color='#fbbf24';}else{themeIcon.className='fas fa-moon';themeToggle.style.color='var(--nav-text-secondary)';}}
+const savedTheme=localStorage.getItem('theme')||'light';applyTheme(savedTheme);
+if(themeToggle){themeToggle.addEventListener('click',()=>{const c=html.getAttribute('data-theme'),n=c==='dark'?'light':'dark';localStorage.setItem('theme',n);applyTheme(n);if(typeof axios!=='undefined')axios.put('/user/profile/update',{theme:n}).catch(()=>{});});}
+const searchToggle=document.getElementById('searchToggle'),searchOverlay=document.getElementById('searchOverlay'),searchClose=document.getElementById('searchClose');
+if(searchToggle){searchToggle.addEventListener('click',()=>{searchOverlay.classList.add('active');setTimeout(()=>searchOverlay.querySelector('input').focus(),100);});}
+if(searchClose)searchClose.addEventListener('click',()=>searchOverlay.classList.remove('active'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')searchOverlay.classList.remove('active');if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();searchOverlay.classList.toggle('active');if(searchOverlay.classList.contains('active'))setTimeout(()=>searchOverlay.querySelector('input').focus(),100);}});
+const userMenuTrigger=document.getElementById('userMenuTrigger'),userMenu=document.querySelector('.user-menu');
+if(userMenuTrigger&&userMenu){userMenuTrigger.addEventListener('click',e=>{e.stopPropagation();userMenu.classList.toggle('open');});document.addEventListener('click',e=>{if(!userMenu.contains(e.target))userMenu.classList.remove('open');});}
+const optionsToggle=document.getElementById('optionsToggle'),optionsDrawer=document.getElementById('optionsDrawer'),drawerClose=document.getElementById('drawerClose'),drawerBackdrop=document.getElementById('drawerBackdrop');
+function openDrawer(){optionsDrawer.classList.add('active');drawerBackdrop.classList.add('active');document.body.style.overflow='hidden';loadDrawerNotifCount();}
+function closeDrawer(){optionsDrawer.classList.remove('active');drawerBackdrop.classList.remove('active');document.body.style.overflow='';}
+if(optionsToggle)optionsToggle.addEventListener('click',openDrawer);
+if(drawerClose)drawerClose.addEventListener('click',closeDrawer);
+if(drawerBackdrop)drawerBackdrop.addEventListener('click',closeDrawer);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+window.toggleAccordion=function(btn){const acc=btn.closest('.drawer-accordion'),was=acc.classList.contains('open');document.querySelectorAll('.drawer-accordion').forEach(a=>a.classList.remove('open'));if(!was)acc.classList.add('open');};
+async function loadDrawerNotifCount(){try{const r=await fetch('/notifications/unread/count'),d=await r.json();if(d.success&&d.unreadCount>0){const b=document.getElementById('drawerNotifBadge');if(b){b.textContent=d.unreadCount>99?'99+':d.unreadCount;b.style.display='inline-block';}}}catch(e){}}
+window.saveNotifPrefs=async function(){const s={emailOnComment:document.getElementById('prefComment')?.checked||false,emailOnNewFollower:document.getElementById('prefFollow')?.checked||false,emailOnLike:document.getElementById('prefLike')?.checked||false,emailDigest:document.getElementById('prefDigest')?.checked||false};try{if(typeof axios!=='undefined')await axios.put('/user/profile/update',{notificationSettings:s});if(typeof notify!=='undefined')notify.success('Notification preferences saved!');else alert('Notification preferences saved!');}catch(err){if(typeof notify!=='undefined')notify.success('Preferences saved locally');else alert('Preferences saved locally');}};
+window.deleteAccountFromDrawer=async function(){const c=confirm('⚠️ Are you absolutely sure? This will permanently delete your account and all your blogs. This action cannot be undone.');if(!c)return;try{const r=await fetch('/user/profile/delete-account',{method:'DELETE'}),d=await r.json();if(d.success){alert('Account deleted. Redirecting...');window.location.href='/';}else alert(d.message||'Failed to delete account');}catch(e){alert('Failed to delete account. Please try again.');}};
+const mobileToggle=document.getElementById('mobileToggle'),mobileMenu=document.getElementById('mobileMenu'),mobileClose=document.getElementById('mobileClose');
+if(mobileToggle&&mobileMenu){mobileToggle.addEventListener('click',()=>{mobileToggle.classList.toggle('active');mobileMenu.classList.toggle('active');});if(mobileClose)mobileClose.addEventListener('click',()=>{mobileToggle.classList.remove('active');mobileMenu.classList.remove('active');});}
 </script>
+
