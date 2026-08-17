@@ -3,6 +3,7 @@ const router = express.Router();
 const Comment = require("../models/Comment");
 const Blog = require("../models/Blog");
 const User = require("../models/user");
+const BlogAnalytics = require("../models/BlogAnalytics");
 const { restrictToLoggedInUserOnly } = require("../middlewares/authentication");
 const { validateComment } = require("../middlewares/validation");
 const NotificationService = require("../services/notificationService");
@@ -24,7 +25,7 @@ router.get("/blog/:blogId", async (req, res) => {
     const author = await User.findById(blog.createdBy).lean();
     const currentUserId = req.user._id.toString();
     const isSelf = currentUserId === author._id.toString();
-    const isFollower = author.followers.some(f => f.toString() === currentUserId);
+    const isFollower = (author.followers || []).some(f => f.toString() === currentUserId);
     const isAdmin = req.user.role === "ADMIN";
 
     if (author.isPrivate && !isSelf && !isFollower && !isAdmin) {
@@ -86,7 +87,7 @@ router.post("/blog/:blogId", async (req, res) => {
     const author = await User.findById(blog.createdBy).lean();
     const currentUserId = req.user._id.toString();
     const isSelf = currentUserId === author._id.toString();
-    const isFollower = author.followers.some(f => f.toString() === currentUserId);
+    const isFollower = (author.followers || []).some(f => f.toString() === currentUserId);
     const isAdmin = req.user.role === "ADMIN";
 
     if (author.isPrivate && !isSelf && !isFollower && !isAdmin) {
@@ -113,27 +114,44 @@ router.post("/blog/:blogId", async (req, res) => {
     // Populate author info
     await comment.populate("author", "fullName profileImageURL");
 
+    // Update analytics
+    try {
+      await BlogAnalytics.incrementComments(blogId);
+    } catch (e) {
+      console.error("Analytics increment error (non-critical):", e.message);
+    }
+
     // Send notification to blog author
     if (blog.createdBy.toString() !== req.user._id.toString()) {
-      await NotificationService.createNotification(
-        blog.createdBy,
-        "comment",
-        {
-          title: "New comment",
-          message: `${req.user.fullName} commented on your blog`,
-          blog: blogId,
-          actor: req.user._id
+      try {
+        if (NotificationService.createNotification) {
+          await NotificationService.createNotification(
+            blog.createdBy,
+            "comment",
+            {
+              title: "New comment",
+              message: `${req.user.fullName} commented on your blog`,
+              blog: blogId,
+              actor: req.user._id
+            }
+          );
         }
-      );
+      } catch (e) {
+        console.error("Notification error (non-critical):", e.message);
+      }
 
       // Send email
-      const blogAuthor = await User.findById(blog.createdBy);
-      if (blogAuthor?.notificationSettings?.emailOnComment) {
-        await NotificationService.sendEmailNotification(blogAuthor, "comment", {
-          blogTitle: blog.title,
-          actorName: req.user.fullName,
-          comment: content.substring(0, 100)
-        });
+      try {
+        const blogAuthor = await User.findById(blog.createdBy);
+        if (blogAuthor?.notificationSettings?.emailOnComment && NotificationService.sendEmailNotification) {
+          await NotificationService.sendEmailNotification(blogAuthor, "comment", {
+            blogTitle: blog.title,
+            actorName: req.user.fullName,
+            comment: content.substring(0, 100)
+          });
+        }
+      } catch (e) {
+        console.error("Email notification error (non-critical):", e.message);
       }
     }
 
@@ -191,6 +209,13 @@ router.delete("/:commentId", async (req, res) => {
     comment.isDeleted = true;
     await comment.save();
 
+    // Update analytics
+    try {
+      await BlogAnalytics.decrementComments(comment.blog);
+    } catch (e) {
+      console.error("Analytics decrement error (non-critical):", e.message);
+    }
+
     res.json({ success: true, message: "Comment deleted" });
   } catch (error) {
     console.error("Error deleting comment:", error);
@@ -214,7 +239,7 @@ router.post("/:commentId/like", async (req, res) => {
       const author = await User.findById(blog.createdBy).lean();
       const currentUserId = req.user._id.toString();
       const isSelf = currentUserId === author._id.toString();
-      const isFollower = author.followers.some(f => f.toString() === currentUserId);
+      const isFollower = (author.followers || []).some(f => f.toString() === currentUserId);
       const isAdmin = req.user.role === "ADMIN";
 
       if (author.isPrivate && !isSelf && !isFollower && !isAdmin) {
