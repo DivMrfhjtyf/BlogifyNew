@@ -20,6 +20,11 @@ router.post("/:userId/follow", async (req, res) => {
       return res.status(400).json({ success: false, message: "Cannot follow yourself" });
     }
 
+    // NULL-SAFETY for old documents
+    targetUser.followers = targetUser.followers || [];
+    targetUser.following = targetUser.following || [];
+    targetUser.followRequests = targetUser.followRequests || [];
+
     // Already following?
     if (currentUser.isFollowing(userId)) {
       return res.status(400).json({ success: false, message: "Already following" });
@@ -31,10 +36,8 @@ router.post("/:userId/follow", async (req, res) => {
     }
 
     if (targetUser.isPrivate) {
-      // Send follow request
       await targetUser.sendFollowRequest(req.user._id);
 
-      // Notify target user
       try {
         await NotificationService.createNotification(
           targetUser._id,
@@ -56,11 +59,9 @@ router.post("/:userId/follow", async (req, res) => {
         message: "Follow request sent"
       });
     } else {
-      // Public account — instant follow
       await currentUser.followUser(userId);
       await targetUser.addFollower(req.user._id);
 
-      // Notify target user
       try {
         await NotificationService.createNotification(
           targetUser._id,
@@ -79,7 +80,7 @@ router.post("/:userId/follow", async (req, res) => {
         success: true,
         requested: false,
         following: true,
-        followerCount: targetUser.followers.length + 1,
+        followerCount: (targetUser.followers || []).length + 1,
         message: "Followed successfully"
       });
     }
@@ -106,7 +107,7 @@ router.post("/:userId/unfollow", async (req, res) => {
     res.json({
       success: true,
       following: false,
-      followerCount: Math.max(0, targetUser.followers.length - 1),
+      followerCount: Math.max(0, (targetUser.followers || []).length - 1),
       message: "Unfollowed successfully"
     });
   } catch (error) {
@@ -132,7 +133,6 @@ router.post("/requests/:requesterId/accept", async (req, res) => {
       await requester.followUser(req.user._id);
     }
 
-    // Notify requester
     try {
       await NotificationService.createNotification(
         requesterId,
@@ -165,7 +165,6 @@ router.post("/requests/:requesterId/reject", async (req, res) => {
     }
 
     await user.rejectFollowRequest(requesterId);
-
     res.json({ success: true, message: "Follow request rejected" });
   } catch (error) {
     console.error("Reject request error:", error);
@@ -184,7 +183,6 @@ router.post("/requests/:userId/cancel", async (req, res) => {
     }
 
     await targetUser.cancelFollowRequest(req.user._id);
-
     res.json({ success: true, message: "Follow request cancelled" });
   } catch (error) {
     console.error("Cancel request error:", error);
@@ -204,14 +202,14 @@ router.get("/:userId/followers", async (req, res) => {
 
     // Privacy check
     const isSelf = req.user._id.toString() === userId;
-    const isFollower = user.followers.some(f => f._id.toString() === req.user._id.toString());
+    const isFollower = (user.followers || []).some(f => f._id && f._id.toString() === req.user._id.toString());
     const isAdmin = req.user.role === "ADMIN";
 
     if (user.isPrivate && !isSelf && !isFollower && !isAdmin) {
       return res.status(403).json({ success: false, message: "This account is private" });
     }
 
-    res.json({ success: true, followers: user.followers });
+    res.json({ success: true, followers: user.followers || [] });
   } catch (error) {
     console.error("Get followers error:", error);
     res.status(500).json({ success: false, message: error.message });
@@ -230,14 +228,14 @@ router.get("/:userId/following", async (req, res) => {
 
     // Privacy check
     const isSelf = req.user._id.toString() === userId;
-    const isFollower = user.followers.some(f => f._id.toString() === req.user._id.toString());
+    const isFollower = (user.followers || []).some(f => f._id && f._id.toString() === req.user._id.toString());
     const isAdmin = req.user.role === "ADMIN";
 
     if (user.isPrivate && !isSelf && !isFollower && !isAdmin) {
       return res.status(403).json({ success: false, message: "This account is private" });
     }
 
-    res.json({ success: true, following: user.following });
+    res.json({ success: true, following: user.following || [] });
   } catch (error) {
     console.error("Get following error:", error);
     res.status(500).json({ success: false, message: error.message });
