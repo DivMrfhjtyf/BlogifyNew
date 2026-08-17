@@ -7,10 +7,28 @@ const validatePassword = (password) => {
   return password.length >= 6;
 };
 
+/**
+ * Sanitize input to prevent basic XSS injection.
+ * Strips HTML tags, null bytes, and common attack vectors.
+ * For display, EJS auto-escapes <%= %>, but this adds a defense-in-depth layer.
+ */
 const sanitizeInput = (input) => {
   if (typeof input !== 'string') return input;
+
   return input
+    // Remove null bytes
+    .replace(/\0/g, '')
+    // Remove script tags and event handlers (case insensitive)
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    // Remove on* event handlers (onclick, onerror, etc.)
+    .replace(/\s*on\w+\s*=\s*["']?[^"'>]*["']?/gi, '')
+    // Remove javascript: protocol
+    .replace(/javascript:/gi, '')
+    // Remove data: URIs that could execute code
+    .replace(/data:text\/html/gi, '')
+    // Remove remaining < > to break any HTML tags
     .replace(/[<>]/g, '')
+    // Trim and cap length
     .trim()
     .substring(0, 5000);
 };
