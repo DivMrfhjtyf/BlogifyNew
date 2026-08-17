@@ -101,11 +101,11 @@ router.get("/:id", async (req, res) => {
 
     if (!blog) return res.status(404).send("Blog not found");
 
-    // ====== PRIVACY CHECK ======
-    const author = await User.findById(blog.createdBy._id).lean();
+    // ====== PRIVACY CHECK (use populated author, no extra query) ======
+    const author = blog.createdBy;
     const currentUserId = req.user?._id?.toString();
-    const isSelf = currentUserId === blog.createdBy._id.toString();
-    const isFollower = author.followers.some(
+    const isSelf = currentUserId === author._id.toString();
+    const isFollower = (author.followers || []).some(
       f => f.toString() === currentUserId
     );
     const isAdmin = req.user?.role === "ADMIN";
@@ -258,11 +258,11 @@ router.post("/:id/like", async (req, res) => {
     const blog = await Blog.findById(req.params.id);
     if (!blog) return res.status(404).json({ success: false, message: "Blog not found" });
 
-    // ====== PRIVACY CHECK: Only followers can like private author's blog ======
+    // ====== PRIVACY CHECK ======
     const author = await User.findById(blog.createdBy).lean();
     const currentUserId = req.user._id.toString();
     const isSelf = currentUserId === blog.createdBy.toString();
-    const isFollower = author.followers.some(f => f.toString() === currentUserId);
+    const isFollower = (author.followers || []).some(f => f.toString() === currentUserId);
     const isAdmin = req.user.role === "ADMIN";
 
     if (author.isPrivate && !isSelf && !isFollower && !isAdmin) {
@@ -302,7 +302,6 @@ router.post("/:id/like", async (req, res) => {
 // ====================== GET FEATURED BLOGS ======================
 router.get("/featured/list", async (req, res) => {
   try {
-    // Exclude private authors from featured
     const privateAuthors = await User.find({ isPrivate: true }).select("_id").lean();
     const privateAuthorIds = privateAuthors.map(u => u._id.toString());
 
@@ -331,7 +330,6 @@ router.get("/tags/:tag", async (req, res) => {
     const limit = 9;
     const skip = (page - 1) * limit;
 
-    // Exclude private authors
     const privateAuthors = await User.find({ isPrivate: true }).select("_id").lean();
     const privateAuthorIds = privateAuthors.map(u => u._id.toString());
 
