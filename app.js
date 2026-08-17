@@ -38,6 +38,12 @@ const PORT = process.env.PORT || 8000;
 
 require("dotenv").config();
 
+// Security: disable X-Powered-By header
+app.disable('x-powered-by');
+
+// Trust proxy (required for req.ip behind Render's reverse proxy)
+app.set('trust proxy', 1);
+
 // Initialize Marked Parser
 const marked = new Marked(
   markedHighlight({
@@ -63,8 +69,8 @@ app.set("view engine", "ejs");
 app.set("views", path.resolve("./views"));
 
 app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.resolve("./public")));
 
 // Security headers
@@ -97,25 +103,19 @@ app.locals.formatDate = function(date) {
   });
 };
 
-/**
- * Global Helper Engine
- * Clears database formatting flags, stabilizes code block segments,
- * escapes raw symbols safely, and returns syntactically styled HTML strings.
- */
 app.locals.renderMarkdown = function(rawContent) {
   if (!rawContent) return '';
 
   let contentString = String(rawContent);
 
-  // 1. ISOLATE CODE BLOCKS: Extract all backtick sections to protect code contents from debris filters
+  // 1. ISOLATE CODE BLOCKS
   const codeBlocks = [];
   contentString = contentString.replace(/```([\s\S]*?)```/g, (match) => {
     codeBlocks.push(match);
     return `__BLOGIFY_CODE_BLOCK_PLACEHOLDER_${codeBlocks.length - 1}__`;
   });
 
-  // 2. CLEAN SYSTEMIC DEBRIS: Safe execution only applied to markdown body text structure
-  // Using replaceAll with strings instead of regex to avoid invalid escape sequences
+  // 2. CLEAN SYSTEMIC DEBRIS (string-based replaceAll, no regex)
   contentString = contentString
     .replaceAll('\\ppbr\\pp', '\n\n')
     .replaceAll('\\ppbr\\ph2', '\n\n## ')
@@ -130,21 +130,20 @@ app.locals.renderMarkdown = function(rawContent) {
     .replaceAll('<<\\strong>', '**')
     .replaceAll('< **', '**');
 
-  // 3. RESTORE CODE BLOCKS: Re-insert pure unescaped code snippets back into place for Marked + Highlight.js
+  // 3. RESTORE CODE BLOCKS
   contentString = contentString.replace(/__BLOGIFY_CODE_BLOCK_PLACEHOLDER_(\d+)__/g, (match, index) => {
     return codeBlocks[parseInt(index)];
   });
 
-  // 4. COMPILE STRUCTURES: Let marked parse blocks cleanly and auto-escape elements contextually
+  // 4. COMPILE
   return marked.parse(contentString);
 };
-// ============================================================
 
 // ====================== GRAPHQL ENDPOINT ======================
 app.all("/graphql", createHandler({
   schema: schema,
   rootValue: root,
-  context: (req) => ({ user: req.raw.user })
+  context: (req) => ({ user: req.user })  // FIXED: was req.raw.user
 }));
 
 // ====================== HOME ROUTE (WITH PRIVACY FILTER) ======================
@@ -168,11 +167,11 @@ app.get("/", async (req, res) => {
     }
 
     // ====== FILTER PRIVATE AUTHORS ======
-    const privateAuthors = await User.find({ isPrivate: true }).select("_id followers").lean();
+    const privateAuthors = await User.find({ isPrivate: true, isDeleted: false }).select("_id followers").lean();
     const currentUserId = req.user?._id?.toString();
 
     const hiddenAuthorIds = privateAuthors
-      .filter(u => !currentUserId || !u.followers.some(f => f.toString() === currentUserId))
+      .filter(u => !currentUserId || !(u.followers || []).some(f => f.toString() === currentUserId))
       .map(u => u._id.toString());
 
     if (hiddenAuthorIds.length > 0) {
