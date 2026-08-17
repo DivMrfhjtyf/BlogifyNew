@@ -1,545 +1,433 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="<%= user?.theme || 'light' %>">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings — Blogify</title>
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --text-secondary: #64748b;
-      --border: #e2e8f0;
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --danger: #ef4444;
-      --danger-hover: #dc2626;
-      --success: #22c55e;
-      --warning: #f59e0b;
-      --shadow: 0 1px 3px rgba(0,0,0,0.1);
-      --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
-    }
-    [data-theme="dark"] {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --text: #f1f5f9;
-      --text-secondary: #94a3b8;
-      --border: #334155;
-      --primary: #818cf8;
-      --primary-hover: #6366f1;
-      --shadow: 0 1px 3px rgba(0,0,0,0.3);
-      --shadow-lg: 0 10px 30px rgba(0,0,0,0.3);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
-    .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
-    
-    .page-header {
-      padding: 40px 0 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .page-header h1 { font-size: 32px; font-weight: 800; }
-    .btn {
-      padding: 10px 22px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
-    .btn-outline {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-outline:hover { background: var(--bg); }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-danger:hover { background: var(--danger-hover); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    
-    /* Settings Card */
-    .settings-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow);
-    }
-    .settings-card h2 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .settings-card > p {
-      color: var(--text-secondary);
-      font-size: 14px;
-      margin-bottom: 24px;
-    }
-    
-    .form-group { margin-bottom: 20px; }
-    .form-group label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    .form-group label span {
-      color: var(--text-secondary);
-      font-weight: 400;
-      font-size: 13px;
-      margin-left: 4px;
-    }
-    .form-control {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 15px;
-      font-family: inherit;
-      outline: none;
-      transition: all 0.2s;
-    }
-    .form-control:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-    textarea.form-control { min-height: 100px; resize: vertical; }
-    select.form-control { cursor: pointer; }
-    
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    
-    .avatar-preview {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid var(--border);
-      margin-bottom: 12px;
-    }
-    .file-input-wrapper {
-      position: relative;
-      overflow: hidden;
-      display: inline-block;
-    }
-    .file-input-wrapper input[type=file] {
-      position: absolute;
-      left: 0; top: 0; opacity: 0;
-      width: 100%; height: 100%;
-      cursor: pointer;
-    }
-    
-    /* Toggle Switch */
-    .toggle-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .toggle-row:last-child { border-bottom: none; }
-    .toggle-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
-    .toggle-info p { font-size: 13px; color: var(--text-secondary); }
-    .toggle-switch {
-      position: relative;
-      width: 50px;
-      height: 28px;
-      background: var(--border);
-      border-radius: 999px;
-      cursor: pointer;
-      transition: background 0.3s;
-      border: none;
-      flex-shrink: 0;
-    }
-    .toggle-switch.active { background: var(--success); }
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      width: 24px; height: 24px;
-      background: white;
-      border-radius: 50%;
-      top: 2px; left: 2px;
-      transition: transform 0.3s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-    .toggle-switch.active::after { transform: translateX(22px); }
-    
-    /* Notification items */
-    .notif-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .notif-item:last-child { border-bottom: none; }
-    .notif-item-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
-    .notif-item-info p { font-size: 13px; color: var(--text-secondary); }
-    
-    /* Danger Zone */
-    .danger-zone {
-      border: 1px solid #fee2e2;
-      background: rgba(239, 68, 68, 0.02);
-      border-radius: 16px;
-      padding: 28px;
-      margin-bottom: 40px;
-    }
-    .danger-zone h2 { color: var(--danger); }
-    .danger-zone > p { color: var(--text-secondary); margin-bottom: 20px; }
-    .danger-action {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .danger-action:last-child { border-bottom: none; }
-    .danger-action-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
-    .danger-action-info p { font-size: 13px; color: var(--text-secondary); }
-    
-    .alert {
-      padding: 12px 16px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      font-size: 14px;
-      font-weight: 500;
-      display: none;
-    }
-    .alert-success { background: #d1fae5; color: #065f46; display: block; }
-    .alert-error { background: #fee2e2; color: #991b1b; display: block; }
-
-    @media (max-width: 640px) {
-      .form-row { grid-template-columns: 1fr; }
-      .page-header h1 { font-size: 24px; }
-      .danger-action { flex-direction: column; gap: 12px; align-items: flex-start; }
-    }
-  </style>
+    <%- include("./partials/head") %>
+    <title>Settings | Blogify</title>
+    <style>
+        .settings-container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .settings-sidebar { position: sticky; top: 100px; height: fit-content; }
+        .settings-nav { list-style: none; padding: 0; margin: 0; }
+        .settings-nav li { margin-bottom: 0.5rem; }
+        .settings-nav a {
+            display: block; padding: 0.75rem 1rem; color: #64748b; text-decoration: none;
+            border-left: 3px solid transparent; border-radius: 0 4px 4px 0; transition: all 0.3s ease;
+        }
+        .settings-nav a:hover { background: #f1f5f9; color: #1e293b; border-left-color: #6366f1; }
+        .settings-nav a.active { background: #eef2ff; color: #6366f1; border-left-color: #6366f1; font-weight: 600; }
+        .settings-section { display: none; }
+        .settings-section.active { display: block; }
+        .settings-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .settings-card h3 { color: #1e293b; font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #f1f5f9; display: flex; align-items: center; gap: 0.75rem; }
+        .settings-card h3 i { color: #6366f1; font-size: 1.25rem; }
+        .settings-group { margin-bottom: 1.5rem; }
+        .settings-group:last-child { margin-bottom: 0; }
+        .settings-label { font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; display: block; }
+        .settings-description { font-size: 0.9rem; color: #64748b; margin-bottom: 1rem; }
+        .profile-image-section { text-align: center; }
+        .profile-img-wrapper { position: relative; width: 120px; height: 120px; margin: 0 auto 1.5rem; }
+        .profile-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 4px solid #6366f1; }
+        .img-edit-overlay {
+            position: absolute; bottom: 0; right: 0; background: #6366f1; border-radius: 50%; width: 45px; height: 45px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; border: 3px solid white;
+        }
+        .img-edit-overlay:hover { background: #4f46e5; transform: scale(1.1); }
+        .img-edit-overlay i { color: white; font-size: 1rem; }
+        .toggle-switch { display: flex; align-items: center; gap: 1rem; }
+        .password-field { position: relative; }
+        .password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; background: none; border: none; padding: 0.5rem; }
+        .password-toggle:hover { color: #1e293b; }
+        .btn-section { display: flex; gap: 1rem; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e2e8f0; }
+        .danger-zone { border-left: 4px solid #ef4444; padding: 1.5rem; background: #fef2f2; border-radius: 8px; }
+        .danger-zone h4 { color: #ef4444; margin-bottom: 0.5rem; }
+        .danger-zone p { color: #64748b; margin-bottom: 1rem; }
+        .alert-custom { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: none; }
+        .alert-custom.show { display: block; }
+        .alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+        .alert-error { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+        .divider { height: 1px; background: #e2e8f0; margin: 2rem 0; }
+        @media (max-width: 768px) {
+            .settings-sidebar { position: static; }
+            .settings-nav { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 1rem; }
+            .settings-nav li { margin-bottom: 0; }
+            .settings-nav a { white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; }
+            .settings-nav a.active { border-left: none; border-bottom-color: #6366f1; }
+        }
+    </style>
 </head>
 <body>
+    <%- include("./partials/nave") %>
 
-<%- include('partials/nave') %>
-
-<div class="container">
-
-  <div class="page-header">
-    <h1>⚙️ Settings</h1>
-    <a href="/profile/<%= user._id %>" class="btn btn-outline">← Back to Profile</a>
-  </div>
-
-  <!-- ====== SECTION 1: EDIT PROFILE ====== -->
-  <div class="settings-card">
-    <h2>👤 Edit Profile</h2>
-    <p>Update your public profile information.</p>
-    
-    <div id="profileAlert" class="alert"></div>
-
-    <form id="profileForm" onsubmit="return updateProfile(event)">
-      <div class="form-group">
-        <label>Profile Photo</label>
-        <img src="<%= user.profileImageURL || '/imgs/default.png' %>" class="avatar-preview" id="avatarPreview">
-        <div class="file-input-wrapper">
-          <button type="button" class="btn btn-outline">Change Photo</button>
-          <input type="file" id="profileImage" accept="image/*" onchange="previewAvatar(this)">
+    <div class="container-fluid bg-light py-4">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between">
+                <h1 class="h3 fw-bold mb-0"><i class="fas fa-cog"></i> Settings</h1>
+                <a href="/user/profile" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Back to Profile
+                </a>
+            </div>
         </div>
-      </div>
+    </div>
 
-      <div class="form-group">
-        <label>Full Name *</label>
-        <input type="text" id="fullName" class="form-control" value="<%= user.fullName %>" required>
-      </div>
+    <div class="settings-container">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3 mb-4">
+                <div class="card shadow-sm settings-sidebar">
+                    <div class="card-body">
+                        <ul class="settings-nav">
+                            <li><a href="#profile-section" class="settings-link active" data-section="profile-section"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a href="#account-section" class="settings-link" data-section="account-section"><i class="fas fa-lock"></i> Account</a></li>
+                            <li><a href="#notifications-section" class="settings-link" data-section="notifications-section"><i class="fas fa-bell"></i> Notifications</a></li>
+                            <li><a href="#appearance-section" class="settings-link" data-section="appearance-section"><i class="fas fa-palette"></i> Appearance</a></li>
+                            <li><a href="#privacy-section" class="settings-link" data-section="privacy-section"><i class="fas fa-shield-alt"></i> Privacy</a></li>
+                            <li><a href="#danger-section" class="settings-link" data-section="danger-section"><i class="fas fa-exclamation-triangle text-danger"></i> Danger Zone</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
-      <div class="form-group">
-        <label>Bio <span>Max 500 characters</span></label>
-        <textarea id="bio" class="form-control" maxlength="500"><%= user.bio || '' %></textarea>
-      </div>
+            <!-- Settings Content -->
+            <div class="col-lg-9">
+                <div id="successAlert" class="alert-custom alert-success"><i class="fas fa-check-circle"></i> <span id="successMessage"></span></div>
+                <div id="errorAlert" class="alert-custom alert-error"><i class="fas fa-exclamation-circle"></i> <span id="errorMessage"></span></div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Website</label>
-          <input type="url" id="website" class="form-control" value="<%= user.website || '' %>" placeholder="https://example.com">
+                <!-- Profile Section -->
+                <div id="profile-section" class="settings-section active">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-user"></i> Profile Information</h3>
+                        <div class="settings-group profile-image-section">
+                            <div class="profile-img-wrapper">
+                                <img src="<%= user.profileImageURL || '/imgs/default.png' %>" alt="Profile" class="profile-img" id="profilePreview" onerror="this.src='/imgs/default.png';">
+                                <label class="img-edit-overlay" for="profileImageInput"><i class="fas fa-camera"></i></label>
+                            </div>
+                            <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
+                            <p class="text-muted small">Click the camera icon to change your profile picture</p>
+                        </div>
+                        <form id="profileForm">
+                            <div class="settings-group">
+                                <label class="settings-label">Full Name *</label>
+                                <input type="text" id="fullName" class="form-control form-control-lg" value="<%= user.fullName %>" required>
+                            </div>
+                            <div class="settings-group">
+                                <label class="settings-label">Email Address</label>
+                                <input type="email" class="form-control form-control-lg" value="<%= user.email %>" disabled>
+                                <small class="text-muted">Email cannot be changed</small>
+                            </div>
+                            <div class="settings-group">
+                                <label class="settings-label">Bio</label>
+                                <textarea id="bio" class="form-control" rows="4" maxlength="500"><%= user.bio || '' %></textarea>
+                                <small class="text-muted d-block mt-1">Max 500 characters</small>
+                            </div>
+                            <div class="settings-group">
+                                <label class="settings-label">Website</label>
+                                <input type="url" id="website" class="form-control form-control-lg" value="<%= user.website || '' %>' placeholder="https://yourwebsite.com">
+                            </div>
+                            <div class="settings-group">
+                                <label class="settings-label">Location</label>
+                                <input type="text" id="location" class="form-control form-control-lg" value="<%= user.location || '' %>" placeholder="City, Country">
+                            </div>
+                            <div class="btn-section">
+                                <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> Save Changes</button>
+                                <button type="reset" class="btn btn-outline-secondary btn-lg"><i class="fas fa-undo"></i> Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Account Section -->
+                <div id="account-section" class="settings-section">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-lock"></i> Account Security</h3>
+                        <% if (!user.googleId || user.password) { %>
+                            <form id="passwordForm">
+                                <div class="settings-group">
+                                    <label class="settings-label">Current Password *</label>
+                                    <div class="password-field">
+                                        <input type="password" id="currentPassword" class="form-control form-control-lg" placeholder="Enter your current password" required>
+                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPassword')"><i class="fas fa-eye"></i></button>
+                                    </div>
+                                </div>
+                                <div class="settings-group">
+                                    <label class="settings-label">New Password *</label>
+                                    <div class="password-field">
+                                        <input type="password" id="newPassword" class="form-control form-control-lg" placeholder="Enter a new password (min 6 characters)" minlength="6" required>
+                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPassword')"><i class="fas fa-eye"></i></button>
+                                    </div>
+                                </div>
+                                <div class="settings-group">
+                                    <label class="settings-label">Confirm Password *</label>
+                                    <div class="password-field">
+                                        <input type="password" id="confirmPassword" class="form-control form-control-lg" placeholder="Confirm your new password" minlength="6" required>
+                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPassword')"><i class="fas fa-eye"></i></button>
+                                    </div>
+                                </div>
+                                <div class="btn-section">
+                                    <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-check"></i> Update Password</button>
+                                    <button type="reset" class="btn btn-outline-secondary btn-lg"><i class="fas fa-undo"></i> Cancel</button>
+                                </div>
+                            </form>
+                        <% } else { %>
+                            <div class="alert alert-info"><i class="fas fa-info-circle"></i> This account uses Google Sign-In. You cannot change the password directly.</div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div id="notifications-section" class="settings-section">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-bell"></i> Notification Preferences</h3>
+                        <form id="notificationsForm">
+                            <div class="settings-group">
+                                <div class="toggle-switch">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="emailOnComment" <%= user.notificationSettings?.emailOnComment !== false ? 'checked' : '' %>>
+                                    </div>
+                                    <div>
+                                        <label class="settings-label" for="emailOnComment">Email on Comments</label>
+                                        <p class="settings-description">Receive an email when someone comments on your blog</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="divider"></div>
+                            <div class="settings-group">
+                                <div class="toggle-switch">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="emailOnNewFollower" <%= user.notificationSettings?.emailOnNewFollower !== false ? 'checked' : '' %>>
+                                    </div>
+                                    <div>
+                                        <label class="settings-label" for="emailOnNewFollower">Email on New Followers</label>
+                                        <p class="settings-description">Get notified when someone follows you</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="divider"></div>
+                            <div class="settings-group">
+                                <div class="toggle-switch">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="emailDigest" <%= user.notificationSettings?.emailDigest !== false ? 'checked' : '' %>>
+                                    </div>
+                                    <div>
+                                        <label class="settings-label" for="emailDigest">Email Digest</label>
+                                        <p class="settings-description">Receive a weekly digest of your account activity</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="btn-section">
+                                <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> Save Preferences</button>
+                                <button type="reset" class="btn btn-outline-secondary btn-lg"><i class="fas fa-undo"></i> Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Appearance Section -->
+                <div id="appearance-section" class="settings-section">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-palette"></i> Appearance</h3>
+                        <form id="appearanceForm">
+                            <div class="settings-group">
+                                <label class="settings-label">Theme Preference</label>
+                                <p class="settings-description">Choose your preferred color scheme</p>
+                                <div class="row mt-3">
+                                    <div class="col-sm-6 mb-3">
+                                        <div class="card" onclick="selectTheme('light')" style="cursor: pointer; border: <%= user.theme === 'light' ? '3px solid #6366f1' : '1px solid #e2e8f0' %>">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-sun fa-3x mb-3" style="color: #f59e0b;"></i>
+                                                <h5 class="card-title">Light Mode</h5>
+                                                <input type="radio" name="theme" value="light" class="form-check-input" <%= user.theme === 'light' ? 'checked' : '' %>>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 mb-3">
+                                        <div class="card" onclick="selectTheme('dark')" style="cursor: pointer; border: <%= user.theme === 'dark' ? '3px solid #6366f1' : '1px solid #e2e8f0' %>">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-moon fa-3x mb-3" style="color: #1e293b;"></i>
+                                                <h5 class="card-title">Dark Mode</h5>
+                                                <input type="radio" name="theme" value="dark" class="form-check-input" <%= user.theme === 'dark' ? 'checked' : '' %>>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="btn-section">
+                                <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save"></i> Apply Theme</button>
+                                <button type="reset" class="btn btn-outline-secondary btn-lg"><i class="fas fa-undo"></i> Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Privacy Section -->
+                <div id="privacy-section" class="settings-section">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-shield-alt"></i> Privacy & Security</h3>
+                        <div class="settings-group">
+                            <label class="settings-label">Active Sessions</label>
+                            <p class="settings-description">Manage your active sessions across devices</p>
+                            <div class="alert alert-info mt-3"><i class="fas fa-info-circle"></i> You currently have 1 active session</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div id="danger-section" class="settings-section">
+                    <div class="danger-zone">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Danger Zone</h4>
+                        <p>These actions cannot be undone. Please proceed with caution.</p>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                            <i class="fas fa-trash"></i> Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-          <label>Location</label>
-          <input type="text" id="location" class="form-control" value="<%= user.location || '' %>" placeholder="City, Country">
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i> Delete Account</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger"><strong>Warning!</strong> This action is permanent.</div>
+                    <p>Deleting your account will:</p>
+                    <ul>
+                        <li>Permanently delete your profile</li>
+                        <li>Delete all your blogs</li>
+                        <li>Remove connections</li>
+                    </ul>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmDelete">
+                        <label class="form-check-label" for="confirmDelete">Yes, delete my account</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled onclick="deleteAccount()"><i class="fas fa-trash"></i> Delete</button>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <div class="form-group">
-        <label>Theme</label>
-        <select id="theme" class="form-control">
-          <option value="light" <%= user.theme === 'light' ? 'selected' : '' %>>☀️ Light</option>
-          <option value="dark" <%= user.theme === 'dark' ? 'selected' : '' %>>🌙 Dark</option>
-        </select>
-      </div>
-
-      <div style="display: flex; justify-content: flex-end;">
-        <button type="submit" class="btn btn-primary" id="profileBtn">Save Profile</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- ====== SECTION 2: PRIVACY ====== -->
-  <div class="settings-card">
-    <h2>🔒 Privacy</h2>
-    <p>Control who can see your content.</p>
-
-    <div class="toggle-row">
-      <div class="toggle-info">
-        <h4>Private Account</h4>
-        <p>When ON, only approved followers can see your blogs and follower lists.</p>
-      </div>
-      <button class="toggle-switch <%= user.isPrivate ? 'active' : '' %>" id="privacyToggle" onclick="togglePrivacy()"></button>
-    </div>
-  </div>
-
-  <!-- ====== SECTION 3: NOTIFICATIONS ====== -->
-  <div class="settings-card">
-    <h2>🔔 Notifications</h2>
-    <p>Choose what you want to be notified about.</p>
-
-    <div class="notif-item">
-      <div class="notif-item-info">
-        <h4>Email on New Comments</h4>
-        <p>Get an email when someone comments on your blog.</p>
-      </div>
-      <button class="toggle-switch <%= user.notificationSettings?.emailOnComment ? 'active' : '' %>" id="notifComment" onclick="toggleNotif('emailOnComment', this)"></button>
     </div>
 
-    <div class="notif-item">
-      <div class="notif-item-info">
-        <h4>Email on New Followers</h4>
-        <p>Get an email when someone follows you.</p>
-      </div>
-      <button class="toggle-switch <%= user.notificationSettings?.emailOnNewFollower ? 'active' : '' %>" id="notifFollower" onclick="toggleNotif('emailOnNewFollower', this)"></button>
-    </div>
+    <%- include("./partials/scripts") %>
 
-    <div class="notif-item">
-      <div class="notif-item-info">
-        <h4>Email on Likes</h4>
-        <p>Get an email when someone likes your blog.</p>
-      </div>
-      <button class="toggle-switch <%= user.notificationSettings?.emailOnLike ? 'active' : '' %>" id="notifLike" onclick="toggleNotif('emailOnLike', this)"></button>
-    </div>
+    <script>
+        document.querySelectorAll('.settings-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.settings-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                const sectionId = link.dataset.section;
+                document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+                document.getElementById(sectionId).classList.add('active');
+            });
+        });
 
-    <div class="notif-item">
-      <div class="notif-item-info">
-        <h4>Weekly Digest</h4>
-        <p>Receive a weekly summary of your blog activity.</p>
-      </div>
-      <button class="toggle-switch <%= user.notificationSettings?.emailDigest ? 'active' : '' %>" id="notifDigest" onclick="toggleNotif('emailDigest', this)"></button>
-    </div>
-  </div>
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                fullName: document.getElementById('fullName').value,
+                bio: document.getElementById('bio').value,
+                website: document.getElementById('website').value,
+                location: document.getElementById('location').value
+            };
+            try {
+                const response = await fetch('/user/profile/update', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                const result = await response.json();
+                if (result.success) showAlert('Profile updated!', 'success');
+                else showAlert(result.message || 'Failed', 'error');
+            } catch (error) { showAlert('Error occurred', 'error'); }
+        });
 
-  <!-- ====== SECTION 4: SECURITY (PASSWORD) ====== -->
-  <div class="settings-card">
-    <h2>🔐 Security</h2>
-    <p>Change your password to keep your account secure.</p>
+        document.getElementById('passwordForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (document.getElementById('newPassword').value !== document.getElementById('confirmPassword').value) {
+                showAlert('Passwords do not match', 'error');
+                return;
+            }
+            const data = {
+                currentPassword: document.getElementById('currentPassword').value,
+                newPassword: document.getElementById('newPassword').value
+            };
+            try {
+                const response = await fetch('/user/profile/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                const result = await response.json();
+                if (result.success) { showAlert('Password changed!', 'success'); document.getElementById('passwordForm').reset(); }
+                else showAlert(result.message || 'Failed', 'error');
+            } catch (error) { showAlert('Error occurred', 'error'); }
+        });
 
-    <div id="passwordAlert" class="alert"></div>
+        document.getElementById('notificationsForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                emailOnComment: document.getElementById('emailOnComment').checked,
+                emailOnNewFollower: document.getElementById('emailOnNewFollower').checked,
+                emailDigest: document.getElementById('emailDigest').checked
+            };
+            try {
+                const response = await fetch('/user/profile/update-notifications', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                const result = await response.json();
+                if (result.success) showAlert('Preferences updated!', 'success');
+                else showAlert(result.message || 'Failed', 'error');
+            } catch (error) { showAlert('Error occurred', 'error'); }
+        });
 
-    <form id="passwordForm" onsubmit="return changePassword(event)">
-      <div class="form-group">
-        <label>Current Password</label>
-        <input type="password" id="currentPassword" class="form-control" required>
-      </div>
-      <div class="form-group">
-        <label>New Password <span>Min 6 characters</span></label>
-        <input type="password" id="newPassword" class="form-control" required minlength="6">
-      </div>
-      <div class="form-group">
-        <label>Confirm New Password</label>
-        <input type="password" id="confirmPassword" class="form-control" required minlength="6">
-      </div>
-      <div style="display: flex; justify-content: flex-end;">
-        <button type="submit" class="btn btn-primary" id="passwordBtn">Update Password</button>
-      </div>
-    </form>
-  </div>
+        document.getElementById('appearanceForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const theme = document.querySelector('input[name="theme"]:checked').value;
+            try {
+                const response = await fetch('/user/profile/update-theme', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theme }) });
+                const result = await response.json();
+                if (result.success) { showAlert('Theme updated!', 'success'); document.documentElement.setAttribute('data-bs-theme', theme); }
+                else showAlert(result.message || 'Failed', 'error');
+            } catch (error) { showAlert('Error occurred', 'error'); }
+        });
 
-  <!-- ====== SECTION 5: DANGER ZONE ====== -->
-  <div class="danger-zone">
-    <h2>🗑️ Danger Zone</h2>
-    <p>Be careful — these actions cannot be undone.</p>
+        document.getElementById('profileImageInput')?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('profileImage', file);
+            try {
+                const response = await fetch('/user/profile/upload-image', { method: 'POST', body: formData });
+                const result = await response.json();
+                if (result.success) { document.getElementById('profilePreview').src = result.imageURL; showAlert('Picture updated!', 'success'); }
+                else showAlert(result.message || 'Failed', 'error');
+            } catch (error) { showAlert('Error occurred', 'error'); }
+        });
 
-    <div class="danger-action">
-      <div class="danger-action-info">
-        <h4>Delete Account</h4>
-        <p>Permanently delete your account and all your blogs. This cannot be undone.</p>
-      </div>
-      <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
-    </div>
-  </div>
+        function togglePasswordVisibility(fieldId) {
+            const field = document.getElementById(fieldId);
+            const icon = event.target.closest('button').querySelector('i');
+            if (field.type === 'password') { field.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
+            else { field.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
+        }
 
-</div>
+        document.getElementById('confirmDelete')?.addEventListener('change', (e) => { document.getElementById('confirmDeleteBtn').disabled = !e.target.checked; });
 
-<script>
-  function showAlert(id, message, isError) {
-    const el = document.getElementById(id);
-    el.textContent = message;
-    el.className = 'alert ' + (isError ? 'alert-error' : 'alert-success');
-    setTimeout(() => el.className = 'alert', 4000);
-  }
+        async function deleteAccount() {
+            try {
+                const response = await fetch('/user/profile/delete-account', { method: 'DELETE', headers: { 'Content-Type': 'application/json' } });
+                const result = await response.json();
+                if (result.success) { showAlert('Account deleted. Redirecting...', 'success'); setTimeout(() => { window.location.href = '/'; }, 2000); }
+                else showAlert(result.message || 'Failed', 'error');
+            } catch (error) { showAlert('Error occurred', 'error'); }
+        }
 
-  function previewAvatar(input) {
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        document.getElementById('avatarPreview').src = e.target.result;
-      };
-      reader.readAsDataURL(input.files[0]);
-    }
-  }
+        function selectTheme(theme) { document.querySelector(`input[value="${theme}"]`).checked = true; }
 
-  async function updateProfile(e) {
-    e.preventDefault();
-    const btn = document.getElementById('profileBtn');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
+        function showAlert(message, type) {
+            const alert = document.getElementById(type === 'success' ? 'successAlert' : 'errorAlert');
+            const messageEl = document.getElementById(type === 'success' ? 'successMessage' : 'errorMessage');
+            messageEl.textContent = message;
+            alert.classList.add('show');
+            setTimeout(() => { alert.classList.remove('show'); }, 5000);
+        }
+    </script>
 
-    const formData = new FormData();
-    const fileInput = document.getElementById('profileImage');
-    if (fileInput.files[0]) formData.append('profileImage', fileInput.files[0]);
-    formData.append('fullName', document.getElementById('fullName').value);
-    formData.append('bio', document.getElementById('bio').value);
-    formData.append('website', document.getElementById('website').value);
-    formData.append('location', document.getElementById('location').value);
-    formData.append('theme', document.getElementById('theme').value);
-
-    try {
-      const res = await fetch('/profile/', { method: 'PUT', body: formData });
-      const data = await res.json();
-      if (data.success) {
-        showAlert('profileAlert', 'Profile updated successfully!', false);
-        document.documentElement.setAttribute('data-theme', document.getElementById('theme').value);
-      } else {
-        showAlert('profileAlert', data.message || 'Failed to update', true);
-      }
-    } catch (err) {
-      showAlert('profileAlert', 'Network error', true);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Save Profile';
-    }
-    return false;
-  }
-
-  async function togglePrivacy() {
-    const toggle = document.getElementById('privacyToggle');
-    toggle.disabled = true;
-    try {
-      const res = await fetch('/profile/privacy', { method: 'PUT' });
-      const data = await res.json();
-      if (data.success) {
-        toggle.classList.toggle('active');
-        showAlert('profileAlert', data.message, false);
-      } else {
-        showAlert('profileAlert', data.message, true);
-      }
-    } catch (err) {
-      showAlert('profileAlert', 'Failed to update privacy', true);
-    } finally {
-      toggle.disabled = false;
-    }
-  }
-
-  async function toggleNotif(setting, btn) {
-    btn.disabled = true;
-    const newValue = !btn.classList.contains('active');
-    try {
-      const res = await fetch('/profile/notifications', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [setting]: newValue })
-      });
-      const data = await res.json();
-      if (data.success) {
-        btn.classList.toggle('active');
-        showAlert('profileAlert', 'Notification preference updated', false);
-      } else {
-        showAlert('profileAlert', data.message, true);
-      }
-    } catch (err) {
-      showAlert('profileAlert', 'Failed to update', true);
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  async function changePassword(e) {
-    e.preventDefault();
-    const current = document.getElementById('currentPassword').value;
-    const newPass = document.getElementById('newPassword').value;
-    const confirm = document.getElementById('confirmPassword').value;
-
-    if (newPass !== confirm) {
-      showAlert('passwordAlert', 'Passwords do not match', true);
-      return false;
-    }
-
-    const btn = document.getElementById('passwordBtn');
-    btn.disabled = true;
-    btn.textContent = 'Updating...';
-
-    try {
-      const res = await fetch('/profile/password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword: current, newPassword: newPass })
-      });
-      const data = await res.json();
-      if (data.success) {
-        showAlert('passwordAlert', 'Password changed successfully!', false);
-        document.getElementById('passwordForm').reset();
-      } else {
-        showAlert('passwordAlert', data.message, true);
-      }
-    } catch (err) {
-      showAlert('passwordAlert', 'Network error', true);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Update Password';
-    }
-    return false;
-  }
-
-  async function deleteAccount() {
-    if (!confirm('⚠️ WARNING: This will permanently delete your account and all your blogs. This action CANNOT be undone.\n\nAre you absolutely sure?')) return;
-    if (!confirm('Final confirmation: Type "DELETE" to confirm.\n\n(This is your last chance to cancel)')) return;
-
-    try {
-      const res = await fetch('/profile/', { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        alert('Your account has been deleted. Redirecting to home...');
-        window.location.href = data.redirect || '/';
-      } else {
-        alert(data.message || 'Failed to delete account');
-      }
-    } catch (err) {
-      alert('Network error');
-    }
-  }
-</script>
-
+    <%- include("./partials/footer") %>
 </body>
 </html>

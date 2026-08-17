@@ -1,311 +1,244 @@
 const express = require("express");
 const router = express.Router();
-const mongoose = require("mongoose");
-const User = require("../models/user");
 const Blog = require("../models/Blog");
+const User = require("../models/user");
 const { restrictToLoggedInUserOnly } = require("../middlewares/authentication");
-const { privacyToggleLimiter } = require("../middlewares/rateLimiting");
 const cloudinaryUpload = require("../middlewares/CloudinaryUploads");
-const { pbkdf2Sync, timingSafeEqual } = require("crypto");
 
-// ====================== GET OWN PROFILE DASHBOARD ======================
+router.use(restrictToLoggedInUserOnly);
+
+// ====================== GET USER PROFILE ======================
 router.get("/", restrictToLoggedInUserOnly, async (req, res) => {
-  res.redirect(`/profile/${req.user._id}`);
+    try {
+        const fullUser = await User.findById(req.user._id)
+            .populate("followers", "fullName email profileImageURL bio")
+            .populate("following", "fullName email profileImageURL bio");
+
+        if (!fullUser) {
+            return res.status(404).send("User not found");
+        }
+
+        const blogs = await Blog.find({ createdBy: req.user._id, isDeleted: false })
+            .sort({ createdAt: -1 });
+
+        res.render("profile", {
+            user: fullUser,
+            blogs: blogs || []
+        });
+    } catch (error) {
+        console.error("🚨 Profile Route Error:", error.message);
+        res.status(500).send("Internal Server Error");
+    }
 });
 
 // ====================== GET SETTINGS PAGE ======================
 router.get("/settings", restrictToLoggedInUserOnly, async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id).lean();
-    res.render("settings", { user, error: null, success: null });
-  } catch (error) {
-    console.error("Settings error:", error);
-    res.status(500).send("Internal Server Error");
-  }
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+        res.render("settings", { user: user });
+    } catch (error) {
+        console.error("Settings Page Error:", error);
+        res.status(500).render("error", { error: error.message });
+    }
 });
 
-// ====================== GET EDIT PROFILE FORM (legacy redirect) ======================
-router.get("/edit", restrictToLoggedInUserOnly, async (req, res) => {
-  res.redirect("/profile/settings");
+// ====================== UPDATE PROFILE ======================
+router.put("/update", async (req, res) => {
+    try {
+        const { fullName, bio, website, location } = req.body;
+
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "User not found" 
+            });
+        }
+
+        user.fullName = fullName || user.fullName;
+        user.bio = bio || user.bio;
+        user.website = website || user.website;
+        user.location = location || user.location;
+
+        await user.save();
+
+        res.json({ 
+            success: true, 
+            message: "Profile updated successfully",
+            user: user
+        });
+    } catch (error) {
+        console.error("Update Profile Error:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || "Failed to update profile" 
+        });
+    }
 });
 
-// ====================== UPDATE OWN PROFILE ======================
-router.put("/", restrictToLoggedInUserOnly, cloudinaryUpload.single("profileImage"), async (req, res) => {
-  try {
-    const { fullName, bio, website, location, theme } = req.body;
-    const user = await User.findById(req.user._id);
+// ====================== UPDATE NOTIFICATIONS ======================
+router.put("/update-notifications", async (req, res) => {
+    try {
+        const { emailOnComment, emailOnNewFollower, emailDigest } = req.body;
 
-    if (fullName) user.fullName = fullName.trim();
-    if (bio !== undefined) user.bio = bio.trim();
-    if (website !== undefined) user.website = website.trim();
-    if (location !== undefined) user.location = location.trim();
-    if (theme && ["light", "dark"].includes(theme)) user.theme = theme;
-    if (req.file) user.profileImageURL = req.file.path;
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
 
-    await user.save();
-    res.json({ success: true, message: "Profile updated", user });
-  } catch (error) {
-    console.error("Update profile error:", error);
-    res.status(500).json({ success: false, message: "Failed to update profile" });
-  }
+        user.notificationSettings = {
+            emailOnComment: emailOnComment !== false,
+            emailOnNewFollower: emailOnNewFollower !== false,
+            emailDigest: emailDigest !== false
+        };
+
+        await user.save();
+
+        res.json({ 
+            success: true, 
+            message: "Notification preferences updated"
+        });
+    } catch (error) {
+        console.error("Update Notifications Error:", error);
+        res.status(500).json({ success: false, message: "Failed to update preferences" });
+    }
+});
+
+// ====================== UPDATE THEME ======================
+router.put("/update-theme", async (req, res) => {
+    try {
+        const { theme } = req.body;
+
+        if (!['light', 'dark'].includes(theme)) {
+            return res.status(400).json({ success: false, message: "Invalid theme" });
+        }
+
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        user.theme = theme;
+        await user.save();
+
+        res.json({ 
+            success: true, 
+            message: "Theme updated successfully"
+        });
+    } catch (error) {
+        console.error("Update Theme Error:", error);
+        res.status(500).json({ success: false, message: "Failed to update theme" });
+    }
+});
+
+// ====================== UPLOAD PROFILE IMAGE ======================
+router.post("/upload-image", cloudinaryUpload.single("profileImage"), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "No image uploaded" 
+            });
+        }
+
+        const user = await User.findById(req.user._id);
+        user.profileImageURL = req.file.path;
+        await user.save();
+
+        res.json({ 
+            success: true, 
+            message: "Profile image updated",
+            imageURL: req.file.path
+        });
+    } catch (error) {
+        console.error("Upload Image Error:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to upload image" 
+        });
+    }
 });
 
 // ====================== CHANGE PASSWORD ======================
-router.put("/password", restrictToLoggedInUserOnly, async (req, res) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-    
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ success: false, message: "Both current and new password are required" });
-    }
-    if (newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: "New password must be at least 6 characters" });
-    }
+router.post("/change-password", async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
 
-    const user = await User.findById(req.user._id);
-    if (!user.password) {
-      return res.status(400).json({ success: false, message: "Google accounts cannot change password here" });
-    }
-
-    // Verify current password
-    const hashToVerify = pbkdf2Sync(currentPassword, user.salt, 100000, 64, "sha512");
-    const storedHash = Buffer.from(user.password, "hex");
-
-    if (hashToVerify.length !== storedHash.length || !timingSafeEqual(hashToVerify, storedHash)) {
-      return res.status(401).json({ success: false, message: "Current password is incorrect" });
-    }
-
-    // Set new password (pre-save hook will rehash)
-    user.password = newPassword;
-    await user.save();
-
-    res.json({ success: true, message: "Password changed successfully" });
-  } catch (error) {
-    console.error("Change password error:", error);
-    res.status(500).json({ success: false, message: "Failed to change password" });
-  }
-});
-
-// ====================== UPDATE NOTIFICATION SETTINGS ======================
-router.put("/notifications", restrictToLoggedInUserOnly, async (req, res) => {
-  try {
-    const { emailOnComment, emailOnNewFollower, emailOnLike, emailDigest } = req.body;
-    const user = await User.findById(req.user._id);
-
-    if (emailOnComment !== undefined) user.notificationSettings.emailOnComment = emailOnComment === true || emailOnComment === "true";
-    if (emailOnNewFollower !== undefined) user.notificationSettings.emailOnNewFollower = emailOnNewFollower === true || emailOnNewFollower === "true";
-    if (emailOnLike !== undefined) user.notificationSettings.emailOnLike = emailOnLike === true || emailOnLike === "true";
-    if (emailDigest !== undefined) user.notificationSettings.emailDigest = emailDigest === true || emailDigest === "true";
-
-    await user.save();
-    res.json({ success: true, message: "Notification preferences updated" });
-  } catch (error) {
-    console.error("Notification settings error:", error);
-    res.status(500).json({ success: false, message: "Failed to update notifications" });
-  }
-});
-
-// ====================== DELETE OWN ACCOUNT ======================
-router.delete("/", restrictToLoggedInUserOnly, async (req, res) => {
-  try {
-    // Soft delete all blogs
-    await Blog.updateMany(
-      { createdBy: req.user._id },
-      { isDeleted: true, deletedAt: new Date() }
-    );
-
-    // Soft delete user
-    await User.findByIdAndUpdate(req.user._id, {
-      isDeleted: true,
-      deletedAt: new Date()
-    });
-
-    res.clearCookie("token");
-    res.json({ success: true, message: "Account deleted permanently", redirect: "/" });
-  } catch (error) {
-    console.error("Delete account error:", error);
-    res.status(500).json({ success: false, message: "Failed to delete account" });
-  }
-});
-
-// ====================== TOGGLE PRIVACY SETTING ======================
-router.put("/privacy", restrictToLoggedInUserOnly, privacyToggleLimiter, async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    const newPrivacy = !user.isPrivate;
-
-    user.isPrivate = newPrivacy;
-
-    if (!newPrivacy && (user.followRequests || []).length > 0) {
-      const NotificationService = require("../services/notificationService");
-
-      for (const requesterId of user.followRequests) {
-        const requester = await User.findById(requesterId);
-        if (requester) {
-          const followers = user.followers || [];
-          const requesterFollowing = requester.following || [];
-
-          if (!followers.some(id => id.toString() === requesterId.toString())) {
-            user.followers.push(requesterId);
-          }
-          if (!requesterFollowing.some(id => id.toString() === user._id.toString())) {
-            requester.following.push(user._id);
-            await requester.save();
-          }
-
-          try {
-            await NotificationService.createNotification(
-              requesterId,
-              "follow",
-              {
-                title: "Follow request accepted",
-                message: `${user.fullName} accepted your follow request`,
-                actor: user._id
-              }
-            );
-          } catch (e) {
-            console.error("Notification error (non-critical):", e.message);
-          }
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Current and new passwords are required" 
+            });
         }
-      }
-      user.followRequests = [];
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "New password must be at least 6 characters" 
+            });
+        }
+
+        const user = await User.findById(req.user._id);
+        
+        if (user.googleId && !user.password) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "This account uses Google Sign-In. Cannot change password." 
+            });
+        }
+
+        const { createHmac } = require("crypto");
+        const currentHash = createHmac("sha256", user.salt)
+            .update(currentPassword)
+            .digest("hex");
+
+        if (user.password !== currentHash) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "Current password is incorrect" 
+            });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        res.json({ 
+            success: true, 
+            message: "Password changed successfully" 
+        });
+    } catch (error) {
+        console.error("Change Password Error:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to change password" 
+        });
     }
-
-    await user.save();
-
-    res.json({
-      success: true,
-      isPrivate: user.isPrivate,
-      message: newPrivacy
-        ? "Your account is now private"
-        : "Your account is now public"
-    });
-  } catch (error) {
-    console.error("Privacy toggle error:", error);
-    res.status(500).json({ success: false, message: "Failed to update privacy" });
-  }
 });
 
-// ====================== GET PENDING FOLLOW REQUESTS ======================
-router.get("/requests", restrictToLoggedInUserOnly, async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id)
-      .populate("followRequests", "fullName profileImageURL bio")
-      .lean();
+// ====================== DELETE ACCOUNT ======================
+router.delete("/delete-account", async (req, res) => {
+    try {
+        const userId = req.user._id;
 
-    res.json({
-      success: true,
-      requests: user.followRequests || []
-    });
-  } catch (error) {
-    console.error("Fetch requests error:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch requests" });
-  }
-});
+        await Blog.deleteMany({ createdBy: userId });
+        await User.findByIdAndDelete(userId);
 
-// ====================== VIEW ANY PROFILE (PUBLIC/PRIVATE AWARE) ======================
-router.get("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const currentUserId = req.user?._id?.toString();
+        res.clearCookie("token");
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(404).render("404", { message: "User not found" });
+        res.json({ 
+            success: true, 
+            message: "Account deleted successfully" 
+        });
+    } catch (error) {
+        console.error("Delete Account Error:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to delete account" 
+        });
     }
-
-    let targetUser = await User.findById(id)
-      .populate("followers", "fullName profileImageURL")
-      .populate("following", "fullName profileImageURL")
-      .lean();
-
-    if (!targetUser) return res.status(404).render("404", { message: "User not found" });
-
-    targetUser.followers = targetUser.followers || [];
-    targetUser.following = targetUser.following || [];
-    targetUser.followRequests = targetUser.followRequests || [];
-    targetUser.isPrivate = targetUser.isPrivate || false;
-    targetUser.bio = targetUser.bio || "";
-    targetUser.website = targetUser.website || "";
-    targetUser.location = targetUser.location || "";
-    targetUser.profileImageURL = targetUser.profileImageURL || "/imgs/default.png";
-
-    const isSelf = currentUserId === id;
-    const isFollower = targetUser.followers.some(
-      f => f && f._id && f._id.toString() === currentUserId
-    );
-    const isAdmin = req.user?.role === "ADMIN";
-    const hasAccess = isSelf || isFollower || isAdmin || !targetUser.isPrivate;
-
-    const counts = {
-      followers: targetUser.followers.length,
-      following: targetUser.following.length,
-      blogs: 0
-    };
-
-    counts.blogs = await Blog.countDocuments({
-      createdBy: id,
-      isDeleted: false,
-      status: "published"
-    });
-
-    const profileData = {
-      _id: targetUser._id,
-      fullName: targetUser.fullName,
-      profileImageURL: targetUser.profileImageURL,
-      bio: targetUser.bio,
-      website: targetUser.website,
-      location: targetUser.location,
-      isPrivate: targetUser.isPrivate,
-      counts,
-      isSelf,
-      isFollowing: isFollower,
-      hasPendingRequest: false
-    };
-
-    if (targetUser.isPrivate && !hasAccess) {
-      if (currentUserId) {
-        profileData.hasPendingRequest = targetUser.followRequests.some(
-          rid => rid && rid.toString() === currentUserId
-        );
-      }
-
-      return res.render("Profile", {
-        title: `${targetUser.fullName} — Blogify`,
-        user: req.user || null,
-        profile: profileData,
-        blogs: [],
-        followersList: [],
-        followingList: [],
-        locked: true
-      });
-    }
-
-    const blogs = await Blog.find({
-      createdBy: id,
-      isDeleted: false,
-      status: "published"
-    })
-      .sort({ createdAt: -1 })
-      .populate("createdBy", "fullName profileImageURL")
-      .lean();
-
-    res.render("Profile", {
-      title: `${targetUser.fullName} — Blogify`,
-      user: req.user || null,
-      profile: {
-        ...profileData,
-        followersList: targetUser.followers,
-        followingList: targetUser.following
-      },
-      blogs,
-      followersList: targetUser.followers,
-      followingList: targetUser.following,
-      locked: false
-    });
-  } catch (error) {
-    console.error("🚨 Profile view error:", error);
-    res.status(500).send(`Internal Server Error: ${error.message}`);
-  }
 });
 
 module.exports = router;
