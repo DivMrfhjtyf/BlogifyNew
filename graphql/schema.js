@@ -19,6 +19,8 @@ const schema = buildSchema(`
     coverImageURL: String
     createdAt: String
     createdBy: User
+    viewCount: Int
+    likes: [ID]
   }
 
   type Query {
@@ -29,48 +31,84 @@ const schema = buildSchema(`
 `);
 
 const root = {
-    // Get all blogs with filtering and pagination
-    blogs: async ({ search, sort = "newest", page = 1, limit = 9 }) => {
-        try {
-            const filter = search ? {
-                $or: [
-                    { title: { $regex: search, $options: "i" } },
-                    { body: { $regex: search, $options: "i" } }
-                ]
-            } : {};
+  // Get all blogs with filtering, pagination, AND privacy filter
+  blogs: async ({ search, sort = "newest", page = 1, limit = 9 }, context) => {
+    try {
+      const currentUserId = context.user?._id?.toString();
 
-            let sortOption = { createdAt: -1 };
-            if (sort === "oldest") sortOption = { createdAt: 1 };
-            if (sort === "title") sortOption = { title: 1 };
+      // Build base filter
+      const filter = {
+        isDeleted: false,
+        status: "published"
+      };
 
-            return await Blog.find(filter)
-                .sort(sortOption)
-                .skip((page - 1) * limit)
-                .limit(limit)
-                .populate("createdBy", "fullName profileImageURL")
-                .lean();
-        } catch (error) {
-            console.error("GraphQL blogs error:", error);
-            return [];
-        }
-    },
+      if (search) {
+        filter.$or = [
+          { title: { $regex: search, $options: "i" } },
+          { body: { $regex: search, $options: "i" } }
+        ];
+      }
 
-    // Get single blog by ID
-    blog: async ({ id }) => {
-        try {
-            return await Blog.findById(id)
-                .populate("createdBy", "fullName profileImageURL")
-                .lean();
-        } catch (error) {
-            console.error("GraphQL blog error:", error);
-            return null;
-        }
-    },
+      // ====== PRIVACY FILTER: Hide private authors' blogs ======
+      const privateAuthors = await User.find({ isPrivate: true, isDeleted: false }).select("_id followers").lean();
 
-    // Get current logged-in user
-    me: (args, context) => {
-        return context.user || null;
+      const hiddenAuthorIds = privateAuthors
+        .filter(u => !currentUserId || !(u.followers || []).some(f => f.toString() === currentUserId))
+        .map(u => u._id.toString());
+
+      if (hiddenAuthorIds.length > 0) {
+        filter.createdBy = { $nin: hiddenAuthorIds };
+      }
+      // =========================================================
+
+      let sortOption = { createdAt: -1 };
+      if (sort === "oldest") sortOption = { createdAt: 1 };
+      if (sort === "title") sortOption = { title: 1 };
+      if (sort === "trending") sortOption = { viewCount: -1 };
+
+      return await Blog.find(filter)
+        .sort(sortOption)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate("createdBy", "fullName profileImageURL")
+        .lean();
+    } catch (error) {
+      console.error("GraphQL blogs error:", error);
+      return [];
     }
+  },
+
+  // Get single blog by ID (with privacy check)
+  blog: async ({ id }, context) => {
+    try {
+      const blog = await Blog.findById(id)
+        .populate("createdBy", "fullName profileImageURL bio followers isPrivate")
+        .lean();
+
+      if (!blog || blog.isDeleted) return null;
+
+      // Privacy check
+      const author = blog.createdBy;
+      const currentUserId = context.user?._id?.toString();
+      const isSelf = currentUserId === author._id.toString();
+      const isFollower = (author.followers || []).some(f => f.toString() === currentUserId);
+      const isAdmin = context.user?.role === "ADMIN";
+
+      if (author.isPrivate && !isSelf && !isFollower && !isAdmin) {
+        return null; // Hide private blogs from non-followers
+      }
+
+      return blog;
+    } catch (error) {
+      console.error("GraphQL blog error:", error);
+      return null;
+    }
+  },
+
+  // Get current logged-in user
+  me: (args, context) => {
+    return context.user || null;
+  }
 };
 
 module.exports = { schema, root };
