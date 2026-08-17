@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
-const { createHmac, randomBytes } = require("crypto");
+const { pbkdf2Sync, randomBytes, timingSafeEqual } = require("crypto");
 const { creatTokenForUser } = require("../services/authentication");
 
 const UserSchema = new Schema({
@@ -55,13 +55,23 @@ const UserSchema = new Schema({
     default: "light"
   },
 
+  // Soft delete for admin safety
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
+  deletedAt: {
+    type: Date,
+    default: null
+  },
+
   // ====== PRIVACY ======
   isPrivate: {
     type: Boolean,
     default: false
   },
 
-  // Pending follow requests (only used when isPrivate = true)
+  // Pending follow requests
   followRequests: [{
     type: Schema.Types.ObjectId,
     ref: "user"
@@ -95,25 +105,24 @@ UserSchema.index({ isPrivate: 1 });
 
 // ====================== VIRTUALS ======================
 UserSchema.virtual("followerCount").get(function() {
-  return this.followers ? this.followers.length : 0;
+  return (this.followers || []).length;
 });
 
 UserSchema.virtual("followingCount").get(function() {
-  return this.following ? this.following.length : 0;
+  return (this.following || []).length;
 });
 
-// ====================== PASSWORD HASHING ======================
+// ====================== PASSWORD HASHING (PBKDF2) ======================
 UserSchema.pre("save", async function (next) {
   if (this.googleId || !this.password || !this.isModified("password")) {
     return next();
   }
 
   try {
-    const salt = randomBytes(16).toString("hex");
+    const salt = randomBytes(32).toString("hex");
+    const hash = pbkdf2Sync(this.password, salt, 100000, 64, "sha512").toString("hex");
     this.salt = salt;
-    this.password = createHmac("sha256", salt)
-      .update(this.password)
-      .digest("hex");
+    this.password = hash;
     next();
   } catch (error) {
     next(error);
@@ -122,15 +131,20 @@ UserSchema.pre("save", async function (next) {
 
 // ====================== STATIC METHODS ======================
 UserSchema.static("matchPassword", async function (email, password) {
-  const user = await this.findOne({ email: email.toLowerCase() });
+  const user = await this.findOne({ email: email.toLowerCase(), isDeleted: false });
   if (!user) throw new Error("User not found");
   if (!user.password) throw new Error("This account uses Google Sign-In");
 
-  const userProvidedHash = createHmac("sha256", user.salt)
-    .update(password)
-    .digest("hex");
+  const hashToVerify = pbkdf2Sync(password, user.salt, 100000, 64, "sha512");
+  const storedHash = Buffer.from(user.password, "hex");
 
-  if (user.password !== userProvidedHash) throw new Error("Incorrect Password");
+  if (hashToVerify.length !== storedHash.length) {
+    throw new Error("Incorrect Password");
+  }
+
+  if (!timingSafeEqual(hashToVerify, storedHash)) {
+    throw new Error("Incorrect Password");
+  }
 
   return creatTokenForUser(user);
 });
@@ -140,10 +154,10 @@ UserSchema.static("findOrCreateGoogleUser", async function (profile) {
     const email = profile.emails[0].value.toLowerCase();
     const googleId = profile.id;
 
-    let user = await this.findOne({ googleId });
+    let user = await this.findOne({ googleId, isDeleted: false });
 
     if (!user) {
-      user = await this.findOne({ email });
+      user = await this.findOne({ email, isDeleted: false });
 
       if (user) {
         user.googleId = googleId;
@@ -171,7 +185,8 @@ UserSchema.static("findOrCreateGoogleUser", async function (profile) {
 // ====================== FOLLOW METHODS ======================
 UserSchema.methods.followUser = async function(userId) {
   const uid = userId.toString();
-  if (!this.following.some(id => id.toString() === uid)) {
+  const following = this.following || [];
+  if (!following.some(id => id.toString() === uid)) {
     this.following.push(userId);
     await this.save();
   }
@@ -179,18 +194,19 @@ UserSchema.methods.followUser = async function(userId) {
 
 UserSchema.methods.unfollowUser = async function(userId) {
   const uid = userId.toString();
-  this.following = this.following.filter(id => id.toString() !== uid);
+  this.following = (this.following || []).filter(id => id.toString() !== uid);
   await this.save();
 };
 
 UserSchema.methods.isFollowing = function(userId) {
   const uid = userId.toString();
-  return this.following.some(id => id.toString() === uid);
+  return (this.following || []).some(id => id.toString() === uid);
 };
 
 UserSchema.methods.addFollower = async function(userId) {
   const uid = userId.toString();
-  if (!this.followers.some(id => id.toString() === uid)) {
+  const followers = this.followers || [];
+  if (!followers.some(id => id.toString() === uid)) {
     this.followers.push(userId);
     await this.save();
   }
@@ -198,23 +214,25 @@ UserSchema.methods.addFollower = async function(userId) {
 
 UserSchema.methods.removeFollower = async function(userId) {
   const uid = userId.toString();
-  this.followers = this.followers.filter(id => id.toString() !== uid);
+  this.followers = (this.followers || []).filter(id => id.toString() !== uid);
   await this.save();
 };
 
 // ====================== FOLLOW REQUEST METHODS ======================
 UserSchema.methods.hasFollowRequestFrom = function(userId) {
   const uid = userId.toString();
-  return this.followRequests.some(id => id.toString() === uid);
+  return (this.followRequests || []).some(id => id.toString() === uid);
 };
 
 UserSchema.methods.sendFollowRequest = async function(requesterId) {
   const rid = requesterId.toString();
+  const requests = this.followRequests || [];
+  const followers = this.followers || [];
 
-  if (this.followers.some(id => id.toString() === rid)) {
+  if (followers.some(id => id.toString() === rid)) {
     throw new Error("Already following this user");
   }
-  if (this.followRequests.some(id => id.toString() === rid)) {
+  if (requests.some(id => id.toString() === rid)) {
     throw new Error("Follow request already sent");
   }
 
@@ -224,12 +242,12 @@ UserSchema.methods.sendFollowRequest = async function(requesterId) {
 
 UserSchema.methods.acceptFollowRequest = async function(requesterId) {
   const rid = requesterId.toString();
-
-  this.followRequests = this.followRequests.filter(
+  this.followRequests = (this.followRequests || []).filter(
     id => id.toString() !== rid
   );
 
-  if (!this.followers.some(id => id.toString() === rid)) {
+  const followers = this.followers || [];
+  if (!followers.some(id => id.toString() === rid)) {
     this.followers.push(requesterId);
   }
   await this.save();
@@ -237,7 +255,7 @@ UserSchema.methods.acceptFollowRequest = async function(requesterId) {
 
 UserSchema.methods.rejectFollowRequest = async function(requesterId) {
   const rid = requesterId.toString();
-  this.followRequests = this.followRequests.filter(
+  this.followRequests = (this.followRequests || []).filter(
     id => id.toString() !== rid
   );
   await this.save();
@@ -245,7 +263,7 @@ UserSchema.methods.rejectFollowRequest = async function(requesterId) {
 
 UserSchema.methods.cancelFollowRequest = async function(requesterId) {
   const rid = requesterId.toString();
-  this.followRequests = this.followRequests.filter(
+  this.followRequests = (this.followRequests || []).filter(
     id => id.toString() !== rid
   );
   await this.save();
