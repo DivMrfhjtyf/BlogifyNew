@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const User = require("../models/user");
 const Blog = require("../models/Blog");
 const { restrictToLoggedInUserOnly } = require("../middlewares/authentication");
+const { privacyToggleLimiter } = require("../middlewares/rateLimiting");
 const cloudinaryUpload = require("../middlewares/CloudinaryUploads");
 
 // ====================== GET OWN PROFILE DASHBOARD ======================
@@ -35,7 +37,6 @@ router.put("/", restrictToLoggedInUserOnly, cloudinaryUpload.single("profileImag
     if (req.file) user.profileImageURL = req.file.path;
 
     await user.save();
-
     res.json({ success: true, message: "Profile updated", user });
   } catch (error) {
     console.error("Update profile error:", error);
@@ -44,7 +45,7 @@ router.put("/", restrictToLoggedInUserOnly, cloudinaryUpload.single("profileImag
 });
 
 // ====================== TOGGLE PRIVACY SETTING ======================
-router.put("/privacy", restrictToLoggedInUserOnly, async (req, res) => {
+router.put("/privacy", restrictToLoggedInUserOnly, privacyToggleLimiter, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     const newPrivacy = !user.isPrivate;
@@ -58,16 +59,17 @@ router.put("/privacy", restrictToLoggedInUserOnly, async (req, res) => {
       for (const requesterId of user.followRequests) {
         const requester = await User.findById(requesterId);
         if (requester) {
-          // Add to each other's lists
-          if (!(user.followers || []).some(id => id.toString() === requesterId.toString())) {
+          const followers = user.followers || [];
+          const requesterFollowing = requester.following || [];
+
+          if (!followers.some(id => id.toString() === requesterId.toString())) {
             user.followers.push(requesterId);
           }
-          if (!(requester.following || []).some(id => id.toString() === user._id.toString())) {
+          if (!requesterFollowing.some(id => id.toString() === user._id.toString())) {
             requester.following.push(user._id);
             await requester.save();
           }
 
-          // Notify requester
           try {
             await NotificationService.createNotification(
               requesterId,
@@ -124,6 +126,11 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
     const currentUserId = req.user?._id?.toString();
 
+    // Validate ObjectId format first
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).render("404", { message: "User not found" });
+    }
+
     let targetUser = await User.findById(id)
       .populate("followers", "fullName profileImageURL")
       .populate("following", "fullName profileImageURL")
@@ -144,7 +151,7 @@ router.get("/:id", async (req, res) => {
 
     const isSelf = currentUserId === id;
     const isFollower = targetUser.followers.some(
-      f => f._id && f._id.toString() === currentUserId
+      f => f && f._id && f._id.toString() === currentUserId
     );
     const isAdmin = req.user?.role === "ADMIN";
     const hasAccess = isSelf || isFollower || isAdmin || !targetUser.isPrivate;
@@ -180,14 +187,13 @@ router.get("/:id", async (req, res) => {
 
     // If private and no access, show locked view
     if (targetUser.isPrivate && !hasAccess) {
-      // Check if current user has sent a request
       if (currentUserId) {
         profileData.hasPendingRequest = targetUser.followRequests.some(
-          rid => rid.toString() === currentUserId
+          rid => rid && rid.toString() === currentUserId
         );
       }
 
-      return res.render("profile", {
+      return res.render("Profile", {
         title: `${targetUser.fullName} — Blogify`,
         user: req.user || null,
         profile: profileData,
@@ -208,7 +214,7 @@ router.get("/:id", async (req, res) => {
       .populate("createdBy", "fullName profileImageURL")
       .lean();
 
-    res.render("profile", {
+    res.render("Profile", {
       title: `${targetUser.fullName} — Blogify`,
       user: req.user || null,
       profile: {
@@ -222,8 +228,7 @@ router.get("/:id", async (req, res) => {
       locked: false
     });
   } catch (error) {
-    console.error("🚨 Profile view error:", error && error.stack ? error.stack : error);
-    // Send actual error message for debugging (remove in production later)
+    console.error("🚨 Profile view error:", error);
     res.status(500).send(`Internal Server Error: ${error.message}`);
   }
 });
