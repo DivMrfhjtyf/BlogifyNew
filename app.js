@@ -97,37 +97,48 @@ app.locals.formatDate = function(date) {
   });
 };
 
+/**
+ * Global Helper Engine
+ * Clears database formatting flags, stabilizes code block segments,
+ * escapes raw symbols safely, and returns syntactically styled HTML strings.
+ */
 app.locals.renderMarkdown = function(rawContent) {
   if (!rawContent) return '';
 
   let contentString = String(rawContent);
 
+  // 1. ISOLATE CODE BLOCKS: Extract all backtick sections to protect code contents from debris filters
   const codeBlocks = [];
   contentString = contentString.replace(/```([\s\S]*?)```/g, (match) => {
     codeBlocks.push(match);
     return `__BLOGIFY_CODE_BLOCK_PLACEHOLDER_${codeBlocks.length - 1}__`;
   });
 
+  // 2. CLEAN SYSTEMIC DEBRIS: Safe execution only applied to markdown body text structure
+  // Using replaceAll with strings instead of regex to avoid invalid escape sequences
   contentString = contentString
-    .replace(/\\ppbr\\pp/g, '\n\n')
-    .replace(/\\ppbr\\ph2/g, '\n\n## ')
-    .replace(/\\ppbr\\ph/g, '\n\n# ')
-    .replace(/\\pp/g, '\n')
-    .replace(/\\h2pbr\\pp/g, '\n## ')
-    .replace(/\\strongpbr\\ph2/g, '\n\n## ')
-    .replace(/\\li\\/ul/g, '')
-    .replace(/\\li/g, '\n* ')
-    .replace(/pbr\\/pul/g, '\n\n')
-    .replace(/pbr\\/p/g, '\n')
-    .replace(/<<\\/strong>/g, '**')
-    .replace(/< **/g, '**');
+    .replaceAll('\\ppbr\\pp', '\n\n')
+    .replaceAll('\\ppbr\\ph2', '\n\n## ')
+    .replaceAll('\\ppbr\\ph', '\n\n# ')
+    .replaceAll('\\pp', '\n')
+    .replaceAll('\\h2pbr\\pp', '\n## ')
+    .replaceAll('\\strongpbr\\ph2', '\n\n## ')
+    .replaceAll('\\li\\ul', '')
+    .replaceAll('\\li', '\n* ')
+    .replaceAll('pbr\\pul', '\n\n')
+    .replaceAll('pbr\\p', '\n')
+    .replaceAll('<<\\strong>', '**')
+    .replaceAll('< **', '**');
 
+  // 3. RESTORE CODE BLOCKS: Re-insert pure unescaped code snippets back into place for Marked + Highlight.js
   contentString = contentString.replace(/__BLOGIFY_CODE_BLOCK_PLACEHOLDER_(\d+)__/g, (match, index) => {
     return codeBlocks[parseInt(index)];
   });
 
+  // 4. COMPILE STRUCTURES: Let marked parse blocks cleanly and auto-escape elements contextually
   return marked.parse(contentString);
 };
+// ============================================================
 
 // ====================== GRAPHQL ENDPOINT ======================
 app.all("/graphql", createHandler({
@@ -219,7 +230,7 @@ app.get("/", async (req, res) => {
 
 // ====================== ROUTES ======================
 app.use("/admin", AdminRoute);
-app.use("/profile", ProfileRoute);        // Combined profile (was /user/profile + /profile)
+app.use("/profile", ProfileRoute);
 app.use("/user", UserRoute);
 app.use("/user", GoogleAuthRoute);
 app.use("/blogs", BlogRoute);
