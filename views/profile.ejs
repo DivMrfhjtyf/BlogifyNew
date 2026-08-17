@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="<%= user?.theme || 'light' %>">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,361 +7,174 @@
   <link rel="stylesheet" href="/css/styles.css">
   <style>
     :root {
-      --bg: #f8f9fa;
-      --card: #ffffff;
-      --text: #212529;
-      --text-muted: #6c757d;
-      --border: #dee2e6;
-      --primary: #0d6efd;
-      --primary-hover: #0b5ed7;
-      --danger: #dc3545;
-      --success: #198754;
-      --warning: #ffc107;
-      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+      --primary: #6366f1; --primary-hover: #4f46e5; --primary-ghost: rgba(99,102,241,0.1);
+      --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-muted: #64748b;
+      --border: #e2e8f0; --shadow: 0 1px 3px rgba(0,0,0,0.05); --shadow-lg: 0 10px 40px rgba(0,0,0,0.08);
+      --radius: 16px;
     }
     [data-theme="dark"] {
-      --bg: #121212;
-      --card: #1e1e1e;
-      --text: #e9ecef;
-      --text-muted: #adb5bd;
-      --border: #343a40;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --shadow: 0 2px 12px rgba(0,0,0,0.3);
+      --primary: #818cf8; --primary-hover: #6366f1; --primary-ghost: rgba(129,140,248,0.15);
+      --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-muted: #94a3b8;
+      --border: #334155; --shadow: 0 1px 3px rgba(0,0,0,0.2); --shadow-lg: 0 10px 40px rgba(0,0,0,0.3);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
+      background: var(--bg); color: var(--text); line-height: 1.6;
     }
-    .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-    
+    .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+
     /* Profile Header */
     .profile-header {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-      margin-bottom: 24px;
-      display: flex;
-      gap: 32px;
-      align-items: flex-start;
-      box-shadow: var(--shadow);
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 40px; text-align: center;
+      margin-bottom: 24px; position: relative; overflow: hidden;
+    }
+    .profile-header::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 120px;
+      background: linear-gradient(135deg, var(--primary), #a855f7); opacity: 0.15;
     }
     .profile-avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid var(--border);
-      flex-shrink: 0;
+      width: 120px; height: 120px; border-radius: 50%;
+      object-fit: cover; border: 4px solid var(--card);
+      box-shadow: var(--shadow-lg); position: relative; z-index: 1;
     }
-    .profile-info { flex: 1; min-width: 0; }
     .profile-name {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      font-size: 28px; font-weight: 800; margin-top: 16px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
     }
     .private-badge {
-      background: var(--warning);
-      color: #000;
-      font-size: 12px;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-weight: 600;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white; font-size: 11px; padding: 4px 10px;
+      border-radius: 20px; font-weight: 700; text-transform: uppercase;
     }
     .profile-bio {
-      color: var(--text-muted);
-      margin-bottom: 16px;
-      font-size: 15px;
-      word-break: break-word;
+      color: var(--text-muted); margin-top: 8px; max-width: 500px; margin-left: auto; margin-right: auto;
     }
     .profile-meta {
-      display: flex;
-      gap: 28px;
-      margin-bottom: 16px;
+      display: flex; justify-content: center; gap: 40px; margin-top: 24px;
     }
-    .profile-meta-item {
-      text-align: center;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
+    .profile-meta-item { text-align: center; cursor: pointer; transition: opacity 0.2s; }
     .profile-meta-item:hover { opacity: 0.7; }
     .profile-meta-item strong {
-      display: block;
-      font-size: 20px;
-      font-weight: 700;
+      display: block; font-size: 24px; font-weight: 800; color: var(--text);
     }
-    .profile-meta-item span {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-    .profile-links {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-    .profile-links a {
-      color: var(--primary);
-      text-decoration: none;
-      font-size: 14px;
-    }
-    .profile-links a:hover { text-decoration: underline; }
-    
-    /* Action Buttons */
+    .profile-meta-item span { font-size: 14px; color: var(--text-muted); font-weight: 500; }
     .profile-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      display: flex; justify-content: center; gap: 12px; margin-top: 24px; flex-wrap: wrap;
     }
     .btn {
-      padding: 9px 22px;
-      border-radius: 8px;
-      border: none;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      padding: 10px 24px; border-radius: 12px; font-size: 14px; font-weight: 600;
+      text-decoration: none; border: none; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 8px;
     }
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
     .btn-outline {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--border);
+      background: transparent; color: var(--text); border: 1px solid var(--border);
     }
     .btn-outline:hover { background: var(--bg); }
-    .btn-success {
-      background: var(--success);
-      color: white;
-    }
-    .btn-danger {
-      background: var(--danger);
-      color: white;
-    }
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    
-    /* Locked State */
-    .locked-section {
-      text-align: center;
-      padding: 60px 24px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-    }
-    .locked-icon {
-      font-size: 56px;
-      margin-bottom: 16px;
-    }
-    .locked-title {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .locked-text {
-      color: var(--text-muted);
-      margin-bottom: 20px;
-    }
-    
+    .btn-success { background: #22c55e; color: white; }
+
     /* Tabs */
     .tabs {
-      display: flex;
-      gap: 4px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 6px;
-      margin-bottom: 24px;
+      display: flex; gap: 4px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 6px; margin-bottom: 24px; overflow-x: auto;
     }
     .tab {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      transition: all 0.2s;
+      flex: 1; padding: 10px 16px; text-align: center; border-radius: 10px;
+      cursor: pointer; font-weight: 600; font-size: 14px; border: none;
+      background: transparent; color: var(--text-muted); transition: all 0.2s;
+      white-space: nowrap;
     }
-    .tab.active {
-      background: var(--primary);
-      color: white;
-    }
-    .tab:hover:not(.active) {
-      background: var(--bg);
-      color: var(--text);
-    }
-    
+    .tab.active { background: var(--primary); color: white; }
+    .tab:hover:not(.active) { background: var(--bg); color: var(--text); }
+
+    /* Content */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
     /* Blog Grid */
     .blog-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
     }
     .blog-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      display: block;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; text-decoration: none;
+      color: inherit; transition: all 0.3s; display: block;
     }
-    .blog-card:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow);
-    }
-    .blog-card img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-    }
-    .blog-card-body {
-      padding: 16px;
-    }
-    .blog-card-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      line-height: 1.4;
-    }
-    .blog-card-meta {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: flex;
-      gap: 12px;
-    }
-    
-    /* Lists (Followers/Following) */
+    .blog-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+    .blog-card img { width: 100%; height: 160px; object-fit: cover; }
+    .blog-card-body { padding: 16px; }
+    .blog-card-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+    .blog-card-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; }
+
+    /* User List */
     .user-list {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
     }
     .user-list-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-      text-decoration: none;
-      color: inherit;
-      transition: background 0.2s;
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      text-decoration: none; color: inherit; transition: background 0.2s;
     }
     .user-list-item:last-child { border-bottom: none; }
     .user-list-item:hover { background: var(--bg); }
-    .user-list-item img {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
+    .user-list-item img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
     .user-list-item-info { flex: 1; }
-    .user-list-item-name {
-      font-weight: 600;
-      font-size: 15px;
+    .user-list-item-name { font-weight: 600; font-size: 15px; }
+
+    /* Locked */
+    .locked {
+      text-align: center; padding: 80px 24px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius);
     }
-    
-    /* Settings Panel */
+    .locked-icon { font-size: 64px; margin-bottom: 16px; }
+    .locked h3 { font-size: 22px; margin-bottom: 8px; }
+    .locked p { color: var(--text-muted); margin-bottom: 24px; }
+
+    /* Requests */
+    .request-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 0; border-bottom: 1px solid var(--border);
+    }
+    .request-item:last-child { border-bottom: none; }
+    .request-actions { display: flex; gap: 8px; margin-left: auto; }
+
+    /* Settings */
     .settings-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 16px;
     }
     .settings-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 0; border-bottom: 1px solid var(--border);
     }
     .settings-row:last-child { border-bottom: none; }
     .settings-label { font-weight: 600; }
-    .settings-desc {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-top: 2px;
+    .settings-desc { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .toggle-switch {
+      position: relative; width: 48px; height: 26px;
+      background: var(--border); border-radius: 13px; cursor: pointer;
+      transition: background 0.3s; border: none;
     }
-    
-    /* Toggle Switch */
-    .toggle {
-      position: relative;
-      width: 48px;
-      height: 26px;
-      background: var(--border);
-      border-radius: 13px;
-      cursor: pointer;
-      transition: background 0.3s;
-      border: none;
+    .toggle-switch.on { background: var(--primary); }
+    .toggle-switch::after {
+      content: ''; position: absolute; width: 22px; height: 22px;
+      background: white; border-radius: 50%; top: 2px; left: 2px;
+      transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-    .toggle.active { background: var(--success); }
-    .toggle::after {
-      content: '';
-      position: absolute;
-      width: 22px;
-      height: 22px;
-      background: white;
-      border-radius: 50%;
-      top: 2px;
-      left: 2px;
-      transition: transform 0.3s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-    .toggle.active::after { transform: translateX(22px); }
-    
-    /* Requests List */
-    .request-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .request-item:last-child { border-bottom: none; }
-    .request-actions {
-      display: flex;
-      gap: 8px;
-      margin-left: auto;
-    }
-    
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 48px;
-      color: var(--text-muted);
-    }
-    
-    /* Responsive */
-    @media (max-width: 600px) {
-      .profile-header { flex-direction: column; align-items: center; text-align: center; }
-      .profile-meta { justify-content: center; }
-      .profile-actions { justify-content: center; }
+    .toggle-switch.on::after { transform: translateX(22px); }
+
+    .empty-state { text-align: center; padding: 60px; color: var(--text-muted); }
+
+    @media (max-width: 640px) {
+      .profile-header { padding: 24px; }
+      .profile-meta { gap: 24px; }
+      .profile-meta-item strong { font-size: 20px; }
       .blog-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -372,71 +185,66 @@
 
 <div class="container">
 
-  <!-- Profile Header -->
   <div class="profile-header">
-    <img src="<%= profile.profileImageURL || '/imgs/default.png' %>" alt="<%= profile.fullName %>" class="profile-avatar">
-    <div class="profile-info">
-      <div class="profile-name">
-        <%= profile.fullName %>
-        <% if (profile.isPrivate) { %>
-          <span class="private-badge">🔒 Private</span>
-        <% } %>
-      </div>
-      
-      <% if (profile.bio) { %>
-        <div class="profile-bio"><%= profile.bio %></div>
+    <img src="<%= profile.profileImageURL %>" alt="<%= profile.fullName %>" class="profile-avatar">
+    <div class="profile-name">
+      <%= profile.fullName %>
+      <% if (profile.isPrivate) { %>
+        <span class="private-badge">🔒 Private</span>
       <% } %>
-      
-      <div class="profile-meta">
-        <div class="profile-meta-item" onclick="showTab('blogs')">
-          <strong id="blog-count"><%= profile.counts.blogs %></strong>
-          <span>Blogs</span>
-        </div>
-        <div class="profile-meta-item" onclick="showTab('followers')">
-          <strong id="follower-count"><%= profile.counts.followers %></strong>
-          <span>Followers</span>
-        </div>
-        <div class="profile-meta-item" onclick="showTab('following')">
-          <strong id="following-count"><%= profile.counts.following %></strong>
-          <span>Following</span>
-        </div>
+    </div>
+    <% if (profile.bio) { %>
+      <p class="profile-bio"><%= profile.bio %></p>
+    <% } %>
+    <% if (profile.website) { %>
+      <a href="<%= profile.website %>" target="_blank" style="color:var(--primary);font-size:13px;text-decoration:none;">
+        🌐 <%= profile.website %>
+      </a>
+    <% } %>
+
+    <div class="profile-meta">
+      <div class="profile-meta-item" onclick="showTab('blogs')">
+        <strong><%= profile.counts.blogs %></strong>
+        <span>Blogs</span>
       </div>
-      
-      <% if (profile.website) { %>
-        <div class="profile-links">
-          <a href="<%= profile.website %>" target="_blank" rel="noopener">🌐 Website</a>
-        </div>
-      <% } %>
-      
-      <div class="profile-actions">
-        <% if (profile.isSelf) { %>
-          <a href="/profile/edit" class="btn btn-outline">✏️ Edit Profile</a>
-          <button class="btn btn-outline" onclick="togglePrivacy()" id="privacy-btn">
-            <%= profile.isPrivate ? '🔓 Make Public' : '🔒 Make Private' %>
-          </button>
-        <% } else if (user) { %>
-          <% if (profile.isFollowing) { %>
-            <button class="btn btn-outline" onclick="handleUnfollow('<%= profile._id %>')">✓ Following</button>
-          <% } else if (profile.hasPendingRequest) { %>
-            <button class="btn btn-outline" onclick="cancelRequest('<%= profile._id %>')">⏳ Requested</button>
-          <% } else { %>
-            <button class="btn btn-primary" onclick="handleFollow('<%= profile._id %>', <%= profile.isPrivate %>)">
-              <%= profile.isPrivate ? '🔒 Request to Follow' : '+ Follow' %>
-            </button>
-          <% } %>
+      <div class="profile-meta-item" onclick="showTab('followers')">
+        <strong><%= profile.counts.followers %></strong>
+        <span>Followers</span>
+      </div>
+      <div class="profile-meta-item" onclick="showTab('following')">
+        <strong><%= profile.counts.following %></strong>
+        <span>Following</span>
+      </div>
+    </div>
+
+    <div class="profile-actions">
+      <% if (profile.isSelf) { %>
+        <a href="/profile/edit" class="btn btn-outline">✏️ Edit Profile</a>
+        <button class="btn btn-outline" onclick="togglePrivacy()" id="privacyBtn">
+          <%= profile.isPrivate ? '🔓 Make Public' : '🔒 Make Private' %>
+        </button>
+      <% } else if (user) { %>
+        <% if (profile.isFollowing) { %>
+          <button class="btn btn-outline" onclick="handleUnfollow('<%= profile._id %>')">✓ Following</button>
+        <% } else if (profile.hasPendingRequest) { %>
+          <button class="btn btn-outline" onclick="cancelRequest('<%= profile._id %>')">⏳ Requested</button>
         <% } else { %>
-          <a href="/user/signin" class="btn btn-primary">Sign in to Follow</a>
+          <button class="btn btn-primary" onclick="handleFollow('<%= profile._id %>', <%= profile.isPrivate %>)">
+            <%= profile.isPrivate ? '🔒 Request to Follow' : '+ Follow' %>
+          </button>
         <% } %>
-      </div>
+      <% } else { %>
+        <a href="/user/signin" class="btn btn-primary">Sign in to Follow</a>
+      <% } %>
     </div>
   </div>
 
   <% if (locked) { %>
-    <!-- LOCKED VIEW (Private account, not following) -->
-    <div class="locked-section">
+
+    <div class="locked">
       <div class="locked-icon">🔒</div>
-      <div class="locked-title">This Account is Private</div>
-      <div class="locked-text">Follow <%= profile.fullName %> to see their full profile, blogs, and follower lists.</div>
+      <h3>This Account is Private</h3>
+      <p>Follow <%= profile.fullName %> to see their full profile, blogs, and follower lists.</p>
       <% if (user && !profile.isSelf) { %>
         <% if (profile.hasPendingRequest) { %>
           <button class="btn btn-outline" onclick="cancelRequest('<%= profile._id %>')">⏳ Request Sent — Cancel</button>
@@ -447,9 +255,7 @@
     </div>
 
   <% } else { %>
-    <!-- FULL ACCESS VIEW -->
-    
-    <!-- Tabs -->
+
     <div class="tabs">
       <button class="tab active" onclick="showTab('blogs')" data-tab="blogs">📝 Blogs</button>
       <button class="tab" onclick="showTab('followers')" data-tab="followers">👥 Followers</button>
@@ -460,8 +266,7 @@
       <% } %>
     </div>
 
-    <!-- Blogs Tab -->
-    <div id="tab-blogs" class="tab-content">
+    <div id="tab-blogs" class="tab-content active">
       <% if (blogs && blogs.length > 0) { %>
         <div class="blog-grid">
           <% blogs.forEach(blog => { %>
@@ -469,7 +274,7 @@
               <% if (blog.coverImageURL) { %>
                 <img src="<%= blog.coverImageURL %>" alt="<%= blog.title %>">
               <% } else { %>
-                <div style="height:160px;background:linear-gradient(135deg,var(--primary),#6c757d);"></div>
+                <div style="height:160px;background:linear-gradient(135deg,var(--primary),#a855f7);"></div>
               <% } %>
               <div class="blog-card-body">
                 <div class="blog-card-title"><%= truncate(blog.title, 50) %></div>
@@ -487,8 +292,7 @@
       <% } %>
     </div>
 
-    <!-- Followers Tab -->
-    <div id="tab-followers" class="tab-content" style="display:none;">
+    <div id="tab-followers" class="tab-content">
       <% if (followersList && followersList.length > 0) { %>
         <div class="user-list">
           <% followersList.forEach(f => { %>
@@ -505,8 +309,7 @@
       <% } %>
     </div>
 
-    <!-- Following Tab -->
-    <div id="tab-following" class="tab-content" style="display:none;">
+    <div id="tab-following" class="tab-content">
       <% if (followingList && followingList.length > 0) { %>
         <div class="user-list">
           <% followingList.forEach(f => { %>
@@ -524,26 +327,22 @@
     </div>
 
     <% if (profile.isSelf) { %>
-      <!-- Requests Tab -->
-      <div id="tab-requests" class="tab-content" style="display:none;">
+      <div id="tab-requests" class="tab-content">
         <div class="settings-panel">
           <h3 style="margin-bottom:16px;">Pending Follow Requests</h3>
-          <div id="requests-list">
-            <div class="empty-state">Loading requests...</div>
-          </div>
+          <div id="requestsList"><div class="empty-state">Loading...</div></div>
         </div>
       </div>
 
-      <!-- Settings Tab -->
-      <div id="tab-settings" class="tab-content" style="display:none;">
+      <div id="tab-settings" class="tab-content">
         <div class="settings-panel">
-          <h3 style="margin-bottom:8px;">Privacy Settings</h3>
+          <h3 style="margin-bottom:8px;">Privacy</h3>
           <div class="settings-row">
             <div>
               <div class="settings-label">Private Account</div>
-              <div class="settings-desc">When ON, only approved followers can see your blogs and follower lists.</div>
+              <div class="settings-desc">Only approved followers can see your blogs and lists.</div>
             </div>
-            <button class="toggle <%= profile.isPrivate ? 'active' : '' %>" id="privacy-toggle" onclick="togglePrivacy()"></button>
+            <button class="toggle-switch <%= profile.isPrivate ? 'on' : '' %>" id="privacyToggle" onclick="togglePrivacy()"></button>
           </div>
         </div>
       </div>
@@ -554,143 +353,95 @@
 </div>
 
 <script>
-  // Tab switching
-  function showTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-    
-    const content = document.getElementById('tab-' + tabName);
-    if (content) content.style.display = 'block';
-    
-    const tab = document.querySelector(`.tab[data-tab="${tabName}"]`);
+    const content = document.getElementById('tab-' + name);
+    if (content) content.classList.add('active');
+    const tab = document.querySelector(`.tab[data-tab="${name}"]`);
     if (tab) tab.classList.add('active');
-    
-    if (tabName === 'requests') loadRequests();
+    if (name === 'requests') loadRequests();
   }
 
-  // Follow handler
   async function handleFollow(userId, isPrivate) {
     try {
-      const res = await fetch(`/follow/${userId}/follow`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const res = await fetch(`/follow/${userId}/follow`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
       const data = await res.json();
-      
       if (data.success) {
-        if (data.requested) {
-          alert('Follow request sent!');
-        } else {
-          alert('You are now following this user!');
-        }
+        alert(data.requested ? 'Follow request sent!' : 'You are now following!');
         window.location.reload();
       } else {
-        alert(data.message || 'Failed to follow');
+        alert(data.message || 'Failed');
       }
-    } catch (err) {
-      console.error(err);
-      alert('Something went wrong');
-    }
+    } catch (err) { alert('Error'); }
   }
 
-  // Unfollow handler
   async function handleUnfollow(userId) {
     if (!confirm('Unfollow this user?')) return;
     try {
-      const res = await fetch(`/follow/${userId}/unfollow`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const res = await fetch(`/follow/${userId}/unfollow`, { method: 'POST' });
       const data = await res.json();
       if (data.success) window.location.reload();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   }
 
-  // Cancel request
   async function cancelRequest(userId) {
     try {
-      const res = await fetch(`/follow/requests/${userId}/cancel`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const res = await fetch(`/follow/requests/${userId}/cancel`, { method: 'POST' });
       const data = await res.json();
       if (data.success) window.location.reload();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   }
 
-  // Toggle privacy
   async function togglePrivacy() {
     try {
-      const res = await fetch('/profile/privacy', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const res = await fetch('/profile/privacy', { method: 'PUT' });
       const data = await res.json();
       if (data.success) {
+        document.getElementById('privacyBtn') && (document.getElementById('privacyBtn').textContent = data.isPrivate ? '🔓 Make Public' : '🔒 Make Private');
+        document.getElementById('privacyToggle') && document.getElementById('privacyToggle').classList.toggle('on');
         alert(data.message);
         window.location.reload();
-      } else {
-        alert(data.message || 'Failed to update privacy');
       }
-    } catch (err) {
-      console.error(err);
-      alert('Something went wrong');
-    }
+    } catch (err) {}
   }
 
-  // Load pending requests
   async function loadRequests() {
-    const container = document.getElementById('requests-list');
+    const container = document.getElementById('requestsList');
     if (!container) return;
-    
     try {
       const res = await fetch('/follow/requests/pending');
       const data = await res.json();
-      
-      if (!data.success || !data.requests || data.requests.length === 0) {
-        container.innerHTML = '<div class="empty-state">No pending follow requests.</div>';
+      if (!data.success || !data.requests || !data.requests.length) {
+        container.innerHTML = '<div class="empty-state">No pending requests.</div>';
         return;
       }
-      
       container.innerHTML = data.requests.map(r => `
         <div class="request-item">
           <img src="${r.profileImageURL || '/imgs/default.png'}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">
-          <div style="flex:1;">
-            <div style="font-weight:600;">${r.fullName}</div>
-          </div>
+          <div style="flex:1;"><div style="font-weight:600;">${r.fullName}</div></div>
           <div class="request-actions">
-            <button class="btn btn-success" onclick="acceptRequest('${r._id}')">Accept</button>
-            <button class="btn btn-outline" onclick="rejectRequest('${r._id}')">Reject</button>
+            <button class="btn btn-success" onclick="acceptReq('${r._id}')">Accept</button>
+            <button class="btn btn-outline" onclick="rejectReq('${r._id}')">Reject</button>
           </div>
         </div>
       `).join('');
     } catch (err) {
-      container.innerHTML = '<div class="empty-state">Failed to load requests.</div>';
+      container.innerHTML = '<div class="empty-state">Failed to load.</div>';
     }
   }
 
-  async function acceptRequest(requesterId) {
+  async function acceptReq(id) {
     try {
-      const res = await fetch(`/follow/requests/${requesterId}/accept`, { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        const countEl = document.getElementById('follower-count');
-        if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
-        loadRequests();
-      }
-    } catch (err) { console.error(err); }
+      const res = await fetch(`/follow/requests/${id}/accept`, { method: 'POST' });
+      if (res.ok) loadRequests();
+    } catch (e) {}
   }
-
-  async function rejectRequest(requesterId) {
+  async function rejectReq(id) {
     try {
-      const res = await fetch(`/follow/requests/${requesterId}/reject`, { method: 'POST' });
-      const data = await res.json();
-      if (data.success) loadRequests();
-    } catch (err) { console.error(err); }
+      const res = await fetch(`/follow/requests/${id}/reject`, { method: 'POST' });
+      if (res.ok) loadRequests();
+    } catch (e) {}
   }
 </script>
 
