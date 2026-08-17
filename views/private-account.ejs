@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="<%= user?.theme || 'light' %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Private Account — Blogify</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --card: #ffffff;
+      --text: #212529;
+      --text-muted: #6c757d;
+      --border: #dee2e6;
+      --primary: #0d6efd;
+    }
+    [data-theme="dark"] {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #e9ecef;
+      --text-muted: #adb5bd;
+      --border: #343a40;
+      --primary: #3b82f6;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .private-box {
+      text-align: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 60px 40px;
+      max-width: 400px;
+      width: 90%;
+    }
+    .private-icon { font-size: 64px; margin-bottom: 20px; }
+    .private-title { font-size: 24px; font-weight: 700; margin-bottom: 10px; }
+    .private-text { color: var(--text-muted); margin-bottom: 24px; }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 24px;
+    }
+    .stats-item strong {
+      display: block;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .stats-item span {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="private-box">
+  <div class="private-icon">🔒</div>
+  <div class="private-title"><%= targetUser.fullName %></div>
+  <div class="private-text">This account is private</div>
+  
+  <div class="stats">
+    <div class="stats-item">
+      <strong><%= targetUser.followerCount %></strong>
+      <span>Followers</span>
+    </div>
+    <div class="stats-item">
+      <strong><%= targetUser.followingCount %></strong>
+      <span>Following</span>
+    </div>
+  </div>
+  
+  <div>
+    <a href="/" class="btn btn-outline">Go Home</a>
+  </div>
+</div>
+
+</body>
+</html>
