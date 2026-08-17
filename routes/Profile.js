@@ -187,7 +187,7 @@ router.get("/:id", async (req, res) => {
         );
       }
 
-      return res.render("Profile", {
+      return res.render("profile", {
         title: `${targetUser.fullName} — Blogify`,
         user: req.user || null,
         profile: profileData,
@@ -208,7 +208,7 @@ router.get("/:id", async (req, res) => {
       .populate("createdBy", "fullName profileImageURL")
       .lean();
 
-    res.render("Profile", {
+    res.render("profile", {
       title: `${targetUser.fullName} — Blogify`,
       user: req.user || null,
       profile: {
@@ -222,7 +222,7 @@ router.get("/:id", async (req, res) => {
       locked: false
     });
   } catch (error) {
-    console.error("🚨 Profile view error:", error);
+    console.error("🚨 Profile view error:", error && error.stack ? error.stack : error);
     // Send actual error message for debugging (remove in production later)
     res.status(500).send(`Internal Server Error: ${error.message}`);
   }
