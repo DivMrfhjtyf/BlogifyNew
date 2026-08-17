@@ -1,1590 +1,405 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="<%= user?.theme || 'light' %>">
 <head>
-    <%- include("./partials/head") %>
-    <title><%= blog.title %> | Blogify</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= blog.title %> | Blogify</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+      --primary: #818cf8;
+      --primary-hover: #6366f1;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 24px 0;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .back-link:hover { color: var(--primary); }
     
-    <style>
-        .blog-container { max-width: 800px; }
-
-        .blog-content {
-            font-size: 1.1rem;
-            line-height: 2;
-            color: #2b2b2b;
-            letter-spacing: 0.3px;
-            word-spacing: 0.1em;
-        }
-
-        .blog-content h1, .blog-content h2, .blog-content h3 {
-            margin-top: 4rem;
-            margin-bottom: 2rem;
-            font-weight: 700;
-            color: #111;
-            letter-spacing: 0.5px;
-            line-height: 1.3;
-        }
-
-        .blog-content h1 { font-size: 2.5rem; margin-top: 5rem; margin-bottom: 2.5rem; }
-        .blog-content h2 { font-size: 2rem; margin-top: 4.5rem; margin-bottom: 2rem; padding-top: 1.5rem; border-top: 2px solid #f0f0f0; }
-        .blog-content h3 { font-size: 1.5rem; margin-top: 3rem; margin-bottom: 1.5rem; }
-
-        .blog-content p {
-            margin-bottom: 2.5rem;
-            margin-top: 0;
-            line-height: 2.1;
-            text-align: justify;
-            padding: 0;
-        }
-
-        .blog-content p + p { margin-top: 2rem; }
-        .blog-content p + pre, .blog-content h1 + pre, .blog-content h2 + pre, .blog-content h3 + pre { margin-top: 3rem; }
-        .code-block-wrapper + p, .code-block-wrapper + h2, .code-block-wrapper + h3, .code-block-wrapper + ul, .code-block-wrapper + ol { margin-top: 3rem; }
-
-        .blog-content ul, .blog-content ol { margin: 3rem 0; padding-left: 2.5rem; line-height: 2.1; }
-        .blog-content li { margin-bottom: 1.5rem; margin-left: 0.5rem; }
-        .blog-content li + li { margin-top: 1.5rem; }
-
-        .blog-content blockquote {
-            margin: 3rem 0;
-            padding: 2rem;
-            border-left: 5px solid #6366f1;
-            background-color: #f8f9fa;
-            font-style: italic;
-            color: #555;
-            line-height: 2;
-        }
-
-        .blog-content img { max-width: 100%; height: auto; margin: 3rem 0; border-radius: 8px; display: block; clear: both; }
-
-        .blog-content table { margin: 3rem 0; width: 100%; border-collapse: collapse; }
-        .blog-content table th, .blog-content table td { padding: 1rem; text-align: left; border-bottom: 1px solid #ddd; }
-        .blog-content table th { background-color: #f8f9fa; font-weight: 600; }
-
-        /* ========== CODE BLOCK ========== */
-        .code-block-wrapper {
-            position: relative;
-            background: #1e1e1e;
-            border-radius: 12px;
-            overflow: hidden;
-            margin: 3rem 0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            border: 1px solid #2d2d2d;
-            display: flex;
-            flex-direction: column;
-            clear: both;
-        }
-        
-        .code-lang-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #2d2d2d, #3a3a3a);
-            color: #e0e0e0;
-            font-family: 'Fira Code', Consolas, Monaco, monospace;
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-bottom-right-radius: 8px;
-            border-top-left-radius: 12px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            z-index: 10;
-            position: relative;
-            align-self: flex-start;
-            margin: 0;
-        }
-        
-        .blog-content pre {
-            background-color: #1e1e1e !important;
-            padding: 1.5rem;
-            margin: 0;
-            border-radius: 0;
-            box-shadow: none;
-            border: none;
-            max-height: 600px !important; 
-            overflow-y: scroll !important;
-            overflow-x: auto !important;
-            display: block;
-            flex-grow: 1;
-            will-change: transform;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-            contain: paint layout style;
-            scroll-behavior: smooth;
-        }
-
-        .blog-content pre::-webkit-scrollbar { width: 12px; height: 12px; }
-        .blog-content pre::-webkit-scrollbar-track { background: #1e1e1e; border-radius: 0; }
-        .blog-content pre::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #3c3c3c, #4b4b4b); border-radius: 6px; border: 2px solid #1e1e1e; }
-        .blog-content pre::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #4b4b4b, #5a5a5a); }
-        .blog-content pre { scrollbar-width: thin; scrollbar-color: #3c3c3c #1e1e1e; }
-        
-        .blog-content pre code {
-            font-family: 'Fira Code', 'Monaco', 'Consolas', 'Courier New', monospace !important;
-            font-size: 0.85rem;
-            background-color: transparent !important;
-            padding: 0;
-            display: block;
-            line-height: 1.6;
-            tab-size: 4;
-            -moz-tab-size: 4;
-            white-space: pre !important; 
-            word-break: normal !important;
-            word-wrap: normal !important;
-            color: #d4d4d4;
-            margin: 0;
-        }
-
-        .code-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: linear-gradient(90deg, #1e1e1e, #222222);
-            padding: 12px 16px;
-            border-top: 1px solid #2d2d2d;
-            font-size: 0.75rem;
-            color: #9e9e9e;
-            z-index: 10;
-            position: relative;
-            flex-shrink: 0;
-        }
-        
-        .code-footer .caution-text { font-style: italic; font-size: 0.75rem; }
-        .code-footer .line-count { font-size: 0.75rem; color: #6a6a6a; margin: 0 10px; }
-        
-        .code-footer .copy-btn {
-            background: transparent;
-            border: 1px solid #3c3c3c;
-            color: #9e9e9e;
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            margin-left: auto;
-        }
-
-        .code-footer .copy-btn:hover { background: #2d2d2d; color: #fff; border-color: #4a4a4a; }
-        .code-footer .copy-btn.copied { color: #4ade80; border-color: #4ade80; }
-
-        .hljs { color: #d4d4d4 !important; background-color: transparent !important; }
-        .hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-builtin-name { color: #c586c0 !important; font-weight: normal; }
-        .hljs-string, .hljs-meta .hljs-string { color: #ce9178 !important; }
-        .hljs-title, .hljs-section, .hljs-function, .hljs-function-name { color: #dcdcaa !important; }
-        .hljs-variable, .hljs-template-variable, .hljs-params, .hljs-name { color: #9cdcfe !important; }
-        .hljs-comment, .hljs-quote { color: #6a9955 !important; font-style: italic; }
-        .hljs-attr, .hljs-number, .hljs-literal { color: #9cdcfe !important; }
-        .hljs-tag, .hljs-type, .hljs-doctag { color: #569cd6 !important; }
-        .hljs-property, .hljs-regexp, .hljs-symbol { color: #4ec9b0 !important; }
-        .hljs-operator { color: #d4d4d4 !important; }
-        .hljs-meta { color: #9cdcfe !important; }
-        .hljs-literal { color: #569cd6 !important; }
-
-        .blog-content p code, .blog-content li code, .blog-content td code {
-            background-color: #f1f3f5;
-            color: #d63384;
-            border-radius: 4px;
-            padding: 0.3rem 0.6rem;
-            font-family: 'Fira Code', Consolas, Monaco, 'Courier New', monospace;
-            font-size: 0.85em;
-            border: 1px solid #e9ecef;
-        }
-
-        .sidebar-widget { position: sticky; top: 100px; }
-
-        /* ========== FLOATING COMMENT BUTTON ========== */
-        .floating-comment-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white;
-            border: none;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            z-index: 999;
-            transition: all 0.3s ease;
-        }
-
-        .floating-comment-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.5);
-        }
-
-        .floating-comment-btn .comment-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #e53e3e;
-            color: white;
-            font-size: 0.7rem;
-            font-weight: 700;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid white;
-        }
-
-        .floating-comment-btn .follower-avatars {
-            position: absolute;
-            top: -35px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: -8px;
-            white-space: nowrap;
-        }
-
-        .floating-comment-btn .follower-avatars img {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid white;
-            margin-left: -8px;
-            object-fit: cover;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        .floating-comment-btn .follower-avatars img:first-child { margin-left: 0; }
-
-        .floating-comment-btn .follower-tooltip {
-            position: absolute;
-            top: -60px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a2e;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-
-        .floating-comment-btn:hover .follower-tooltip { opacity: 1; }
-
-        /* ========== BOTTOM COMMENT POPUP ========== */
-        .comment-popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .comment-popup-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .comment-popup {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            max-height: 85vh;
-            background: white;
-            border-radius: 20px 20px 0 0;
-            z-index: 1001;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
-        }
-
-        .comment-popup.active {
-            transform: translateY(0);
-        }
-
-        .comment-popup-header {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-
-        .comment-popup-header h5 {
-            font-weight: 700;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .comment-popup-close {
-            background: #f1f5f9;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #64748b;
-            transition: all 0.2s;
-        }
-
-        .comment-popup-close:hover { background: #e2e8f0; color: #1a1a2e; }
-
-        .comment-popup-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem 1.5rem;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .comment-popup-input {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #e2e8f0;
-            background: white;
-            flex-shrink: 0;
-        }
-
-        /* ========== NESTED COMMENTS IN POPUP ========== */
-        .popup-comment-card {
-            border: none;
-            background: #fff;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
-            transition: all 0.2s ease;
-        }
-
-        .popup-comment-card:hover { background: #f8fafc; }
-
-        .popup-comment-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .popup-comment-author {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .popup-comment-author img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #f0f0f0;
-        }
-
-        .popup-comment-author-info h6 {
-            font-weight: 700;
-            margin-bottom: 0;
-            color: #1a1a2e;
-            font-size: 0.9rem;
-        }
-
-        .popup-comment-author-info small { color: #8898aa; font-size: 0.75rem; }
-
-        .popup-comment-body {
-            color: #4a5568;
-            line-height: 1.6;
-            margin-bottom: 0.5rem;
-            padding-left: 2.75rem;
-            font-size: 0.9rem;
-        }
-
-        .popup-comment-actions {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding-left: 2.75rem;
-            padding-top: 0.5rem;
-        }
-
-        .popup-comment-action-btn {
-            background: none;
-            border: none;
-            color: #8898aa;
-            font-size: 0.8rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.2rem 0.4rem;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .popup-comment-action-btn:hover { background: #f7fafc; color: #6366f1; }
-        .popup-comment-action-btn.liked { color: #e53e3e; }
-
-        /* Nested replies */
-        .popup-replies-container {
-            margin-left: 1.5rem;
-            margin-top: 0.75rem;
-            padding-left: 1rem;
-            border-left: 2px solid #e2e8f0;
-        }
-
-        .popup-reply-card {
-            background: #f8fafc;
-            border-radius: 10px;
-            padding: 0.875rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .popup-reply-card .popup-comment-body { padding-left: 0; }
-        .popup-reply-card .popup-comment-actions { padding-left: 0; }
-
-        /* Reply form in popup */
-        .popup-reply-form {
-            display: none;
-            margin-top: 0.75rem;
-            padding: 0.875rem;
-            background: #f8fafc;
-            border-radius: 10px;
-            margin-left: 2.75rem;
-        }
-
-        .popup-reply-form.active {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-
-        .popup-reply-form textarea {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 0.625rem;
-            width: 100%;
-            resize: vertical;
-            min-height: 70px;
-            font-size: 0.85rem;
-            font-family: inherit;
-        }
-
-        .popup-reply-form textarea:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .popup-reply-form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .popup-comment-input-area {
-            display: flex;
-            gap: 0.75rem;
-            align-items: flex-start;
-        }
-
-        .popup-comment-input-area img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-
-        .popup-comment-input-area textarea {
-            flex: 1;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
-            resize: none;
-            min-height: 44px;
-            max-height: 120px;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-
-        .popup-comment-input-area textarea:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.08);
-        }
-
-        .popup-comment-input-area button {
-            background: #6366f1;
-            color: white;
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .popup-comment-input-area button:hover { background: #4f46e5; }
-        .popup-comment-input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        /* Author badge */
-        .author-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white;
-            font-size: 0.6rem;
-            font-weight: 700;
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
-            margin-left: 0.4rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Like avatars section */
-        .like-avatars-section {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid #e2e8f0;
-            margin-bottom: 1rem;
-        }
-
-        .like-avatars {
-            display: flex;
-            align-items: center;
-        }
-
-        .like-avatars img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid white;
-            margin-left: -10px;
-            object-fit: cover;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-
-        .like-avatars img:first-child { margin-left: 0; }
-
-        .like-avatars-text {
-            font-size: 0.85rem;
-            color: #4a5568;
-        }
-
-        .like-avatars-text strong { color: #1a1a2e; }
-
-        /* Comment menu */
-        .comment-menu { position: relative; }
-        .comment-menu-btn {
-            background: none;
-            border: none;
-            color: #8898aa;
-            cursor: pointer;
-            padding: 0.25rem;
-            border-radius: 4px;
-            transition: all 0.2s;
-            font-size: 0.85rem;
-        }
-        .comment-menu-btn:hover { background: #f7fafc; color: #4a5568; }
-
-        .comment-menu-dropdown {
-            position: absolute;
-            right: 0;
-            top: 100%;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            min-width: 120px;
-            z-index: 100;
-            display: none;
-            overflow: hidden;
-        }
-        .comment-menu-dropdown.show { display: block; animation: fadeIn 0.15s ease; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-
-        .comment-menu-item {
-            padding: 0.6rem 1rem;
-            font-size: 0.85rem;
-            color: #4a5568;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .comment-menu-item:hover { background: #f7fafc; color: #1a1a2e; }
-        .comment-menu-item.delete { color: #e53e3e; }
-        .comment-menu-item.delete:hover { background: #fff5f5; }
-
-        /* Edit form */
-        .edit-form { padding-left: 2.75rem; margin-top: 0.5rem; }
-        .edit-form textarea {
-            width: 100%;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 0.625rem;
-            font-size: 0.85rem;
-            resize: vertical;
-            min-height: 70px;
-            font-family: inherit;
-        }
-        .edit-form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-        @keyframes heartBeat {
-            0% { transform: scale(1); }
-            14% { transform: scale(1.3); }
-            28% { transform: scale(1); }
-            42% { transform: scale(1.3); }
-            70% { transform: scale(1); }
-        }
-        .heart-animate { animation: heartBeat 0.5s ease; }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .blog-content { font-size: 1rem; line-height: 1.9; }
-            .blog-content h1 { font-size: 1.8rem; margin-top: 3rem; }
-            .blog-content h2 { font-size: 1.5rem; margin-top: 2.5rem; }
-            .blog-content p { margin-bottom: 1.5rem; line-height: 1.8; }
-            .blog-content pre { max-height: 500px !important; padding: 1rem !important; }
-            .code-footer { flex-direction: column; gap: 10px; }
-            .code-footer .copy-btn { margin-left: 0; align-self: flex-end; }
-            .code-lang-badge { font-size: 0.8rem; padding: 6px 12px; }
-            
-            .floating-comment-btn { bottom: 20px; right: 20px; width: 52px; height: 52px; font-size: 1.25rem; }
-            .comment-popup { max-height: 90vh; }
-            .popup-replies-container { margin-left: 0.75rem; padding-left: 0.5rem; }
-            .popup-comment-body, .popup-comment-actions, .popup-reply-form, .edit-form { padding-left: 0; }
-            .popup-reply-form { margin-left: 0; }
-        }
-    </style>
+    .blog-header {
+      margin-bottom: 32px;
+    }
+    .blog-meta-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .blog-author-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .blog-author-card img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+    }
+    .blog-author-info { line-height: 1.3; }
+    .blog-author-info strong {
+      font-size: 15px;
+      display: block;
+    }
+    .blog-author-info span {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .blog-status-badges {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-draft { background: #fef3c7; color: #92400e; }
+    .badge-published { background: #d1fae5; color: #065f46; }
+    .badge-private { background: #fee2e2; color: #991b1b; }
+    
+    .blog-title {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+    
+    .blog-cover {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+      border-radius: 16px;
+      margin-bottom: 32px;
+    }
+    
+    .blog-content {
+      font-size: 18px;
+      line-height: 1.8;
+      color: var(--text);
+    }
+    .blog-content h1, .blog-content h2, .blog-content h3 {
+      margin: 32px 0 16px;
+      font-weight: 700;
+    }
+    .blog-content p { margin-bottom: 20px; }
+    .blog-content pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 24px 0;
+      font-size: 15px;
+    }
+    .blog-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9em;
+    }
+    .blog-content blockquote {
+      border-left: 4px solid var(--primary);
+      padding-left: 20px;
+      margin: 24px 0;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+    .blog-content img {
+      max-width: 100%;
+      border-radius: 12px;
+      margin: 24px 0;
+    }
+    .blog-content ul, .blog-content ol {
+      margin: 20px 0;
+      padding-left: 24px;
+    }
+    .blog-content li { margin-bottom: 8px; }
+    
+    .blog-actions-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 0;
+      margin: 40px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .action-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .action-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    .blog-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+    }
+    .tag {
+      padding: 6px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .tag:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .blog-stats-footer {
+      display: flex;
+      gap: 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-top: 16px;
+    }
+    
+    /* Sidebar Cards */
+    .sidebar-section {
+      margin-top: 48px;
+    }
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .sidebar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .sidebar-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+    }
+    .sidebar-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+    .sidebar-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+    }
+    .sidebar-card-body {
+      padding: 14px;
+    }
+    .sidebar-card h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+    .sidebar-card span {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+      .blog-title { font-size: 28px; }
+      .blog-cover { height: 220px; }
+      .blog-content { font-size: 16px; }
+    }
+  </style>
 </head>
 <body>
-    <%- include("./partials/nave") %>
 
-    <article class="container my-5">
-        <div class="row">
-            <div class="col-lg-8">
-                <a href="/" class="btn btn-outline-primary btn-sm mb-4">
-                    <i class="fas fa-arrow-left"></i> Back to Home
-                </a>
+<%- include('partials/nave') %>
 
-                <div class="mb-5">
-                    <h1 class="display-5 fw-bold mb-3"><%= blog.title %></h1>
+<div class="container">
 
-                    <div class="d-flex align-items-center justify-content-between py-3 border-top border-bottom">
-                        <div class="d-flex align-items-center gap-3">
-                            <img src="<%= blog.createdBy.profileImageURL %>" 
-                                 alt="<%= blog.createdBy.fullName %>" 
-                                 width="48" height="48" 
-                                 class="rounded-circle"
-                                 onerror="this.src='/imgs/default.png';">
-                            <div>
-                                <a href="#" class="fw-bold text-decoration-none" id="authorLink">
-                                    <%= blog.createdBy.fullName %>
-                                </a>
-                                <div class="small text-muted">
-                                    <%= formatDate(blog.createdAt) %> 
-                                    <% if (blog.readingTime) { %> • <%= blog.readingTime %> min read <% } %>
-                                </div>
-                            </div>
-                        </div>
+  <a href="/" class="back-link">← Back to Home</a>
 
-                        <div class="d-flex gap-2">
-                            <% if (locals.user && locals.user._id.toString() === blog.createdBy._id.toString()) { %>
-                                <a href="/blogs/<%= blog._id %>/edit" class="btn btn-outline-secondary btn-sm">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <button class="btn btn-outline-danger btn-sm" onclick="deleteBlog('<%= blog._id %>')">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
-
-                <% if (blog.coverImageURL) { %>
-                    <img src="<%= blog.coverImageURL %>" 
-                         alt="<%= blog.title %>" 
-                         class="img-fluid rounded-3 mb-5 shadow-sm"
-                         onerror="this.src='/images/default-blog.png';">
-                <% } %>
-
-                <div class="blog-content mb-5">
-                    <%- renderMarkdown(blog.body) %>
-                </div>
-
-                <% if (blog.tags && blog.tags.length > 0) { %>
-                    <div class="mb-5 pb-4 border-bottom">
-                        <h6 class="fw-bold mb-3">Tags</h6>
-                        <div>
-                            <% blog.tags.forEach(tag => { %>
-                                <a href="/blogs/tags/<%= tag %>" class="btn btn-sm btn-outline-primary me-2 mb-2">#<%= tag %></a>
-                            <% }) %>
-                        </div>
-                    </div>
-                <% } %>
-
-                <div class="d-flex gap-3 py-4 border-top border-bottom">
-                    <button class="btn btn-outline-danger" id="likeBtn" onclick="toggleLike()">
-                        <i class="fas fa-heart <%= hasLiked ? 'fas' : 'far' %>"></i>
-                        <span id="likeCount"><%= blog.likes ? blog.likes.length : 0 %></span> Like
-                    </button>
-                    <button class="btn btn-outline-primary" id="shareBtn">
-                        <i class="fas fa-share-alt"></i> Share
-                    </button>
-                </div>
-            </div>
-
-            <!-- ========== SIDEBAR ========== -->
-            <div class="col-lg-4 mt-5 mt-lg-0">
-                <div class="card shadow-sm sidebar-widget mb-4">
-                    <div class="card-body">
-                        <div class="text-center mb-3">
-                            <img src="<%= blog.createdBy.profileImageURL %>" 
-                                 alt="<%= blog.createdBy.fullName %>" 
-                                 width="80" height="80" 
-                                 class="rounded-circle mb-3 border"
-                                 style="border-width: 3px !important; border-color: #e2e8f0 !important;"
-                                 onerror="this.src='/imgs/default.png';">
-                            <h5 class="fw-bold mb-1"><%= blog.createdBy.fullName %></h5>
-                            <p class="text-muted small mb-3"><%= blog.createdBy.bio || 'Blogger at Blogify' %></p>
-                        </div>
-
-                        <div class="d-flex justify-content-around text-center mb-3 py-2 border-top border-bottom">
-                            <div>
-                                <h6 class="fw-bold mb-0" id="authorFollowers">0</h6>
-                                <small class="text-muted">Followers</small>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-0" id="authorFollowing">0</h6>
-                                <small class="text-muted">Following</small>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-0"><%= authorBlogs ? authorBlogs.length : 0 %></h6>
-                                <small class="text-muted">Posts</small>
-                            </div>
-                        </div>
-
-                        <!-- ========== FOLLOW/UNFOLLOW BUTTON ========== -->
-                        <% if (locals.user && locals.user._id.toString() !== blog.createdBy._id.toString()) { %>
-                            <button class="btn btn-primary w-100" id="followBtn" onclick="toggleFollow()">
-                                <i class="fas fa-user-plus"></i> <span id="followBtnText">Follow</span>
-                            </button>
-                        <% } else if (!locals.user) { %>
-                            <a href="/user/signin" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-user-plus"></i> Follow
-                            </a>
-                        <% } else { %>
-                            <div class="alert alert-light text-center py-2 mb-0" style="border-radius: 8px; font-size: 0.85rem;">
-                                <i class="fas fa-crown text-warning"></i> This is your article
-                            </div>
-                        <% } %>
-                    </div>
-                </div>
-
-                <div class="card shadow-sm sidebar-widget mb-4">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-3"><i class="fas fa-chart-bar text-primary"></i> Article Stats</h6>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted"><i class="fas fa-eye"></i> Views</span>
-                            <strong><%= blog.viewCount || 0 %></strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted"><i class="fas fa-heart text-danger"></i> Likes</span>
-                            <strong id="sidebarLikeCount"><%= blog.likes ? blog.likes.length : 0 %></strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted"><i class="fas fa-comment text-primary"></i> Comments</span>
-                            <strong id="sidebarCommentCount">0</strong>
-                        </div>
-                    </div>
-                </div>
-
-                <% if (typeof authorBlogs !== 'undefined' && authorBlogs.length > 0) { %>
-                    <div class="card shadow-sm sidebar-widget mb-4">
-                        <div class="card-body">
-                            <h6 class="fw-bold mb-3"><i class="fas fa-pen text-primary"></i> More from <%= blog.createdBy.fullName %></h6>
-                            <% authorBlogs.forEach(authorBlog => { %>
-                                <a href="/blogs/<%= authorBlog._id %>" class="text-decoration-none d-block mb-3 p-2 rounded" style="border-left: 3px solid #6366f1; background: #f8fafc;">
-                                    <small class="fw-bold text-dark d-block mb-1"><%= truncate(authorBlog.title, 50) %></small>
-                                    <small class="text-muted" style="font-size: 0.75rem;"><%= formatDate(authorBlog.createdAt) %> • <%= authorBlog.readingTime || 0 %> min read</small>
-                                </a>
-                            <% }) %>
-                        </div>
-                    </div>
-                <% } %>
-
-                <% if (typeof relatedBlogs !== 'undefined' && relatedBlogs.length > 0) { %>
-                    <div class="card shadow-sm sidebar-widget">
-                        <div class="card-body">
-                            <h6 class="fw-bold mb-3"><i class="fas fa-lightbulb text-warning"></i> Related Articles</h6>
-                            <% relatedBlogs.forEach(relatedBlog => { %>
-                                <a href="/blogs/<%= relatedBlog._id %>" class="text-decoration-none d-block mb-3 p-2 rounded" style="border-left: 3px solid #10b981; background: #f0fdf4;">
-                                    <small class="fw-bold text-dark d-block mb-1"><%= truncate(relatedBlog.title, 50) %></small>
-                                    <small class="text-muted" style="font-size: 0.75rem;"><%= formatDate(relatedBlog.createdAt) %> • <%= relatedBlog.readingTime || 0 %> min read</small>
-                                </a>
-                            <% }) %>
-                        </div>
-                    </div>
-                <% } %>
-            </div>
+  <article class="blog-header">
+    <div class="blog-meta-top">
+      <a href="/profile/<%= blog.createdBy._id %>" class="blog-author-card">
+        <img src="<%= blog.createdBy.profileImageURL || '/imgs/default.png' %>" alt="<%= blog.createdBy.fullName %>">
+        <div class="blog-author-info">
+          <strong><%= blog.createdBy.fullName %></strong>
+          <span><%= formatDate(blog.createdAt) %> • <%= blog.readingTime || 1 %> min read</span>
         </div>
-    </article>
-
-    <!-- ========== FLOATING COMMENT BUTTON ========== -->
-    <button class="floating-comment-btn" id="floatingCommentBtn" onclick="openCommentPopup()">
-        <div class="follower-avatars" id="followerAvatars"></div>
-        <i class="fas fa-comment-alt"></i>
-        <span class="comment-count" id="floatingCommentCount">0</span>
-    </button>
-
-    <!-- ========== BOTTOM COMMENT POPUP ========== -->
-    <div class="comment-popup-overlay" id="commentPopupOverlay" onclick="closeCommentPopup()"></div>
-    
-    <div class="comment-popup" id="commentPopup">
-        <div class="comment-popup-header">
-            <h5><i class="fas fa-comments text-primary"></i> Comments <span class="badge bg-primary-soft text-primary ms-2" id="popupCommentCount">0</span></h5>
-            <button class="comment-popup-close" onclick="closeCommentPopup()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div class="comment-popup-body" id="popupCommentBody">
-            <!-- Like avatars section -->
-            <div class="like-avatars-section" id="likeAvatarsSection">
-                <div class="like-avatars" id="likeAvatars"></div>
-                <span class="like-avatars-text" id="likeAvatarsText"></span>
-            </div>
-            
-            <!-- Comments list -->
-            <div id="popupCommentsList"></div>
-        </div>
-        
-        <div class="comment-popup-input">
-            <% if (locals.user) { %>
-                <div class="popup-comment-input-area">
-                    <img src="<%= locals.user.profileImageURL || '/imgs/default.png' %>" 
-                         alt="<%= locals.user.fullName %>"
-                         onerror="this.src='/imgs/default.png';">
-                    <textarea id="popupCommentText" placeholder="Write a comment..." rows="1"></textarea>
-                    <button onclick="submitPopupComment()" id="popupSubmitBtn">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            <% } else { %>
-                <div class="text-center py-2">
-                    <a href="/user/signin" class="btn btn-primary btn-sm">
-                        <i class="fas fa-sign-in-alt"></i> Sign in to comment
-                    </a>
-                </div>
-            <% } %>
-        </div>
+      </a>
+      <div class="blog-status-badges">
+        <% if (blog.status === 'draft') { %>
+          <span class="badge badge-draft">Draft</span>
+        <% } else { %>
+          <span class="badge badge-published">Published</span>
+        <% } %>
+        <% if (blog.createdBy.isPrivate) { %>
+          <span class="badge badge-private">🔒 Private</span>
+        <% } %>
+      </div>
     </div>
+    
+    <h1 class="blog-title"><%= blog.title %></h1>
+    
+    <% if (blog.coverImageURL) { %>
+      <img src="<%= blog.coverImageURL %>" alt="<%= blog.title %>" class="blog-cover">
+    <% } %>
+  </article>
 
-    <%- include("./partials/scripts") %>
+  <div class="blog-content">
+    <%- renderMarkdown(blog.body) %>
+  </div>
 
-    <script>
-        const blogId = '<%= blog._id %>';
-        const currentUserId = '<%= locals.user ? locals.user._id : "" %>';
-        const currentUserName = '<%= locals.user ? locals.user.fullName : "" %>';
-        const currentUserImage = '<%= locals.user ? locals.user.profileImageURL : "/imgs/default.png" %>';
-        const blogAuthorId = '<%= blog.createdBy._id %>';
-        
-        let commentsData = [];
-        let isFollowingAuthor = false;
-        let blogLikes = <%- JSON.stringify(blog.likes || []) %>;
-        let blogComments = [];
+  <% if (blog.tags && blog.tags.length > 0) { %>
+    <div class="blog-tags">
+      <% blog.tags.forEach(tag => { %>
+        <a href="/blogs/tags/<%= tag %>" class="tag">#<%= tag %></a>
+      <% }) %>
+    </div>
+  <% } %>
 
-        /* ========== CODE BLOCKS ========== */
-        function initCodeBlocks() {
-            document.querySelectorAll('.blog-content pre').forEach(pre => {
-                if (pre.parentElement && pre.parentElement.classList.contains('code-block-wrapper')) return;
-                const code = pre.querySelector('code');
-                if (!code) return;
+  <div class="blog-actions-bar">
+    <button class="action-btn <%= hasLiked ? 'active' : '' %>" onclick="toggleLike('<%= blog._id %>')" id="likeBtn">
+      <span id="likeIcon"><%= hasLiked ? '❤️' : '🤍' %></span>
+      <span id="likeCount"><%= blog.likes ? blog.likes.length : 0 %></span>
+    </button>
+    <div class="blog-stats-footer">
+      <span>👁 <%= blog.viewCount || 0 %> views</span>
+    </div>
+    <% if (user && user._id.toString() === blog.createdBy._id.toString()) { %>
+      <a href="/blogs/<%= blog._id %>/edit" class="action-btn" style="margin-left:auto;">✏️ Edit</a>
+    <% } %>
+  </div>
 
-                let lang = 'code';
-                const langMatch = code.className.match(/language-(\w+)/);
-                if (langMatch) lang = langMatch[1].toLowerCase();
+  <!-- Author's Other Blogs -->
+  <% if (typeof authorBlogs !== 'undefined' && authorBlogs.length > 0) { %>
+    <div class="sidebar-section">
+      <h3 class="sidebar-title">More from <%= blog.createdBy.fullName %></h3>
+      <div class="sidebar-grid">
+        <% authorBlogs.forEach(b => { %>
+          <a href="/blogs/<%= b._id %>" class="sidebar-card">
+            <% if (b.coverImageURL) { %>
+              <img src="<%= b.coverImageURL %>" alt="<%= b.title %>">
+            <% } else { %>
+              <div style="height:120px;background:linear-gradient(135deg,var(--primary),#8b5cf6);"></div>
+            <% } %>
+            <div class="sidebar-card-body">
+              <h4><%= truncate(b.title, 40) %></h4>
+              <span><%= formatDate(b.createdAt) %></span>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    </div>
+  <% } %>
 
-                const lineCount = (code.innerText.match(/\n/g) || []).length + 1;
+  <!-- Related Blogs -->
+  <% if (typeof relatedBlogs !== 'undefined' && relatedBlogs.length > 0) { %>
+    <div class="sidebar-section">
+      <h3 class="sidebar-title">Related Stories</h3>
+      <div class="sidebar-grid">
+        <% relatedBlogs.forEach(b => { %>
+          <a href="/blogs/<%= b._id %>" class="sidebar-card">
+            <% if (b.coverImageURL) { %>
+              <img src="<%= b.coverImageURL %>" alt="<%= b.title %>">
+            <% } else { %>
+              <div style="height:120px;background:linear-gradient(135deg,#8b5cf6,var(--primary));"></div>
+            <% } %>
+            <div class="sidebar-card-body">
+              <h4><%= truncate(b.title, 40) %></h4>
+              <span><%= formatDate(b.createdAt) %></span>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    </div>
+  <% } %>
 
-                const wrapper = document.createElement('div');
-                wrapper.className = 'code-block-wrapper';
+</div>
 
-                const badge = document.createElement('div');
-                badge.className = 'code-lang-badge';
-                badge.textContent = lang;
-
-                const footer = document.createElement('div');
-                footer.className = 'code-footer';
-                footer.innerHTML = `
-                    <span class="caution-text">Use code with caution.</span>
-                    <span class="line-count">${lineCount} lines</span>
-                    <button class="copy-btn" aria-label="Copy code">
-                        <i class="far fa-copy"></i> <span>Copy</span>
-                    </button>
-                `;
-
-                const copyBtn = footer.querySelector('.copy-btn');
-                copyBtn.addEventListener('click', async () => {
-                    try {
-                        await navigator.clipboard.writeText(code.innerText);
-                        copyBtn.classList.add('copied');
-                        copyBtn.innerHTML = '<i class="fas fa-check"></i> <span>Copied!</span>';
-                        setTimeout(() => {
-                            copyBtn.classList.remove('copied');
-                            copyBtn.innerHTML = '<i class="far fa-copy"></i> <span>Copy</span>';
-                        }, 2000);
-                    } catch (err) {
-                        console.error('Copy failed:', err);
-                    }
-                });
-
-                pre.parentNode.insertBefore(wrapper, pre);
-                wrapper.appendChild(badge);
-                wrapper.appendChild(pre);
-                wrapper.appendChild(footer);
-            });
+<script>
+  async function toggleLike(blogId) {
+    try {
+      const res = await fetch(`/blogs/${blogId}/like`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        const btn = document.getElementById('likeBtn');
+        const icon = document.getElementById('likeIcon');
+        const count = document.getElementById('likeCount');
+        if (data.liked) {
+          btn.classList.add('active');
+          icon.textContent = '❤️';
+        } else {
+          btn.classList.remove('active');
+          icon.textContent = '🤍';
         }
+        count.textContent = data.likeCount;
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+</script>
 
-        /* ========== COMMENT POPUP ========== */
-        function openCommentPopup() {
-            document.getElementById('commentPopupOverlay').classList.add('active');
-            document.getElementById('commentPopup').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            loadPopupComments();
-        }
-
-        function closeCommentPopup() {
-            document.getElementById('commentPopupOverlay').classList.remove('active');
-            document.getElementById('commentPopup').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        /* ========== TIME AGO ========== */
-        function timeAgo(date) {
-            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-            let interval = seconds / 31536000;
-            if (interval > 1) return Math.floor(interval) + " years ago";
-            interval = seconds / 2592000;
-            if (interval > 1) return Math.floor(interval) + " months ago";
-            interval = seconds / 86400;
-            if (interval > 1) return Math.floor(interval) + " days ago";
-            interval = seconds / 3600;
-            if (interval > 1) return Math.floor(interval) + " hours ago";
-            interval = seconds / 60;
-            if (interval > 1) return Math.floor(interval) + " minutes ago";
-            return "Just now";
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        /* ========== RENDER NESTED COMMENTS ========== */
-        function renderPopupComment(comment, isReply = false) {
-            if (!comment || comment.isDeleted) return '';
-
-            const isAuthor = currentUserId && comment.author && comment.author._id.toString() === currentUserId;
-            const isBlogOwner = currentUserId === blogAuthorId;
-            const canDelete = isAuthor || isBlogOwner;
-            const hasLiked = comment.likes && comment.likes.some(id => id.toString() === currentUserId);
-            const likeCount = comment.likes ? comment.likes.length : 0;
-            
-            // Recursively render nested replies
-            let repliesHtml = '';
-            if (comment.replies && comment.replies.length > 0) {
-                const validReplies = comment.replies.filter(r => r && !r.isDeleted);
-                if (validReplies.length > 0) {
-                    repliesHtml = `
-                        <div class="popup-replies-container" id="replies-${comment._id}">
-                            ${validReplies.map(reply => renderPopupComment(reply, true)).join('')}
-                        </div>
-                    `;
-                }
-            }
-
-            const authorId = comment.author?._id ? comment.author._id.toString() : '';
-            const isCommentFromAuthor = authorId === blogAuthorId;
-
-            return `
-                <div class="${isReply ? 'popup-reply-card' : 'popup-comment-card'}" id="popup-comment-${comment._id}" data-comment-id="${comment._id}">
-                    <div class="popup-comment-header">
-                        <div class="popup-comment-author">
-                            <img src="${comment.author?.profileImageURL || '/imgs/default.png'}" 
-                                 alt="${comment.author?.fullName || 'Unknown'}"
-                                 onerror="this.src='/imgs/default.png';">
-                            <div class="popup-comment-author-info">
-                                <h6>
-                                    ${comment.author?.fullName || 'Unknown User'}
-                                    ${isCommentFromAuthor ? '<span class="author-badge"><i class="fas fa-pen-nib"></i> Author</span>' : ''}
-                                </h6>
-                                <small>${timeAgo(comment.createdAt)} ${comment.isEdited ? '• Edited' : ''}</small>
-                            </div>
-                        </div>
-                        ${canDelete ? `
-                            <div class="comment-menu">
-                                <button class="comment-menu-btn" onclick="toggleCommentMenu('${comment._id}')">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <div class="comment-menu-dropdown" id="menu-${comment._id}">
-                                    ${isAuthor ? `<div class="comment-menu-item" onclick="startEditPopupComment('${comment._id}')">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </div>` : ''}
-                                    <div class="comment-menu-item delete" onclick="deletePopupComment('${comment._id}')">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </div>
-                                </div>
-                            </div>
-                        ` : ''}
-                    </div>
-                    
-                    <div class="popup-comment-body" id="popup-body-${comment._id}">
-                        ${escapeHtml(comment.content)}
-                    </div>
-                    
-                    <div class="edit-form" id="popup-edit-form-${comment._id}" style="display: none;">
-                        <textarea id="popup-edit-text-${comment._id}">${escapeHtml(comment.content)}</textarea>
-                        <div class="edit-form-actions">
-                            <button class="btn-reply-cancel" onclick="cancelEditPopup('${comment._id}')">Cancel</button>
-                            <button class="btn-reply-submit" onclick="saveEditPopup('${comment._id}')">Save</button>
-                        </div>
-                    </div>
-
-                    <div class="popup-comment-actions">
-                        <button class="popup-comment-action-btn ${hasLiked ? 'liked' : ''}" onclick="togglePopupCommentLike('${comment._id}')">
-                            <i class="${hasLiked ? 'fas' : 'far'} fa-heart ${hasLiked ? 'heart-animate' : ''}"></i>
-                            <span>${likeCount}</span>
-                        </button>
-                        ${currentUserId ? `
-                            <button class="popup-comment-action-btn" onclick="togglePopupReplyForm('${comment._id}')">
-                                <i class="fas fa-reply"></i> Reply
-                            </button>
-                        ` : ''}
-                        ${!isReply && repliesHtml ? `
-                            <button class="popup-comment-action-btn" onclick="togglePopupReplies('${comment._id}')">
-                                <i class="fas fa-comments"></i> ${comment.replies?.filter(r => r && !r.isDeleted).length || 0} Replies
-                            </button>
-                        ` : ''}
-                    </div>
-
-                    ${currentUserId ? `
-                        <div class="popup-reply-form" id="popup-reply-form-${comment._id}">
-                            <textarea id="popup-reply-text-${comment._id}" placeholder="Write your reply..."></textarea>
-                            <div class="popup-reply-form-actions">
-                                <button class="btn-reply-cancel" onclick="togglePopupReplyForm('${comment._id}')">Cancel</button>
-                                <button class="btn-reply-submit" onclick="submitPopupReply('${comment._id}')">
-                                    <i class="fas fa-paper-plane"></i> Reply
-                                </button>
-                            </div>
-                        </div>
-                    ` : ''}
-
-                    ${repliesHtml}
-                </div>
-            `;
-        }
-
-        /* ========== COMMENT MENU TOGGLES ========== */
-        function toggleCommentMenu(commentId) {
-            const menu = document.getElementById(`menu-${commentId}`);
-            document.querySelectorAll('.comment-menu-dropdown').forEach(m => {
-                if (m !== menu) m.classList.remove('show');
-            });
-            menu.classList.toggle('show');
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.comment-menu')) {
-                document.querySelectorAll('.comment-menu-dropdown').forEach(m => m.classList.remove('show'));
-            }
-        });
-
-        function togglePopupReplyForm(commentId) {
-            if (!currentUserId) return;
-            const form = document.getElementById(`popup-reply-form-${commentId}`);
-            form.classList.toggle('active');
-            if (form.classList.contains('active')) {
-                setTimeout(() => {
-                    const textarea = document.getElementById(`popup-reply-text-${commentId}`);
-                    if (textarea) textarea.focus();
-                }, 100);
-            }
-        }
-
-        function togglePopupReplies(commentId) {
-            const container = document.getElementById(`replies-${commentId}`);
-            if (container) {
-                container.style.display = container.style.display === 'none' ? 'block' : 'none';
-            }
-        }
-
-        function startEditPopupComment(commentId) {
-            document.getElementById(`popup-body-${commentId}`).style.display = 'none';
-            document.getElementById(`popup-edit-form-${commentId}`).style.display = 'block';
-            toggleCommentMenu(commentId);
-        }
-
-        function cancelEditPopup(commentId) {
-            document.getElementById(`popup-body-${commentId}`).style.display = 'block';
-            document.getElementById(`popup-edit-form-${commentId}`).style.display = 'none';
-        }
-
-        async function saveEditPopup(commentId) {
-            const content = document.getElementById(`popup-edit-text-${commentId}`).value.trim();
-            if (!content) return;
-
-            try {
-                const res = await axios.put(`/comments/${commentId}`, { content });
-                if (res.data.success) {
-                    document.getElementById(`popup-body-${commentId}`).textContent = content;
-                    cancelEditPopup(commentId);
-                    notify.success('Comment updated');
-                }
-            } catch (err) {
-                notify.error('Failed to update comment');
-            }
-        }
-
-        /* ========== LOAD COMMENTS FOR POPUP ========== */
-        async function loadPopupComments() {
-            const list = document.getElementById('popupCommentsList');
-            list.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x text-primary"></i></div>';
-
-            try {
-                const res = await axios.get(`/comments/blog/${blogId}`);
-                const data = res.data;
-                
-                if (data.success) {
-                    blogComments = data.comments || [];
-                    commentsData = blogComments;
-                    
-                    // Update counts
-                    document.getElementById('popupCommentCount').textContent = data.total || 0;
-                    document.getElementById('floatingCommentCount').textContent = data.total || 0;
-                    document.getElementById('sidebarCommentCount').textContent = data.total || 0;
-
-                    // Update follower avatars on floating button
-                    updateFollowerAvatars();
-
-                    if (blogComments.length === 0) {
-                        list.innerHTML = `
-                            <div class="text-center py-5 text-muted">
-                                <i class="far fa-comments fa-3x mb-3 d-block"></i>
-                                <h6 class="fw-bold">No comments yet</h6>
-                                <p>Be the first to share your thoughts!</p>
-                            </div>
-                        `;
-                    } else {
-                        list.innerHTML = blogComments.map(c => renderPopupComment(c)).join('');
-                    }
-                }
-            } catch (err) {
-                console.error('Error loading comments:', err);
-                list.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle"></i> Failed to load comments.
-                        <button class="btn btn-sm btn-link" onclick="loadPopupComments()">Retry</button>
-                    </div>
-                `;
-            }
-        }
-
-        /* ========== UPDATE FOLLOWER AVATARS ON FLOATING BUTTON ========== */
-        async function updateFollowerAvatars() {
-            if (!currentUserId) return;
-            
-            try {
-                // Get current user's followers
-                const res = await axios.get(`/follow/${currentUserId}/followers`);
-                if (res.data.success) {
-                    const followers = res.data.followers || [];
-                    
-                    // Find followers who commented on this blog
-                    const followerCommenters = [];
-                    const processedIds = new Set();
-                    
-                    // Check all comments (including nested replies) for follower activity
-                    function checkComments(comments) {
-                        comments.forEach(comment => {
-                            if (!comment || !comment.author) return;
-                            const authorId = comment.author._id.toString();
-                            
-                            if (followers.some(f => f._id.toString() === authorId) && !processedIds.has(authorId)) {
-                                processedIds.add(authorId);
-                                followerCommenters.push({
-                                    _id: authorId,
-                                    fullName: comment.author.fullName,
-                                    profileImageURL: comment.author.profileImageURL
-                                });
-                            }
-                            
-                            if (comment.replies && comment.replies.length > 0) {
-                                checkComments(comment.replies);
-                            }
-                        });
-                    }
-                    
-                    checkComments(blogComments);
-                    
-                    // Update floating button avatars
-                    const avatarsContainer = document.getElementById('followerAvatars');
-                    if (followerCommenters.length > 0) {
-                        const maxShow = 3;
-                        const showFollowers = followerCommenters.slice(0, maxShow);
-                        const remaining = followerCommenters.length - maxShow;
-                        
-                        let html = showFollowers.map(f => 
-                            `<img src="${f.profileImageURL || '/imgs/default.png'}" alt="${f.fullName}" title="${f.fullName}" onerror="this.src='/imgs/default.png';">`
-                        ).join('');
-                        
-                        if (remaining > 0) {
-                            html += `<span style="background:#6366f1;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;border:2px solid white;margin-left:-8px;">+${remaining}</span>`;
-                        }
-                        
-                        avatarsContainer.innerHTML = html;
-                        avatarsContainer.style.display = 'flex';
-                    } else {
-                        avatarsContainer.style.display = 'none';
-                    }
-                }
-            } catch (err) {
-                console.error('Error loading follower avatars:', err);
-            }
-        }
-
-        /* ========== UPDATE LIKE AVATARS IN POPUP ========== */
-        async function updateLikeAvatars() {
-            try {
-                // Get users who liked this blog
-                const likeSection = document.getElementById('likeAvatarsSection');
-                const avatarsContainer = document.getElementById('likeAvatars');
-                const textContainer = document.getElementById('likeAvatarsText');
-                
-                if (blogLikes.length === 0) {
-                    likeSection.style.display = 'none';
-                    return;
-                }
-                
-                // Fetch user details for likes (we need to get this from the blog data or API)
-                // For now, we'll show the count with a generic avatar
-                const likeCount = blogLikes.length;
-                
-                // Try to get like user details if available
-                let likeUsers = [];
-                try {
-                    const res = await axios.get(`/blogs/${blogId}`);
-                    if (res.data.success && res.data.blog && res.data.blog.likes) {
-                        likeUsers = res.data.blog.likes.slice(0, 5); // Show max 5
-                    }
-                } catch (e) {
-                    // Fallback to just showing count
-                }
-                
-                if (likeUsers.length > 0) {
-                    let html = likeUsers.map(u => 
-                        `<img src="${u.profileImageURL || '/imgs/default.png'}" alt="${u.fullName || 'User'}" title="${u.fullName || 'User'}" onerror="this.src='/imgs/default.png';">`
-                    ).join('');
-                    avatarsContainer.innerHTML = html;
-                    
-                    if (likeCount > likeUsers.length) {
-                        textContainer.innerHTML = `<strong>${likeCount}</strong> people liked this`;
-                    } else {
-                        textContainer.innerHTML = `<strong>${likeCount}</strong> ${likeCount === 1 ? 'person' : 'people'} liked this`;
-                    }
-                } else {
-                    avatarsContainer.innerHTML = `
-                        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:white;font-size:0.8rem;">
-                            <i class="fas fa-heart"></i>
-                        </div>
-                    `;
-                    textContainer.innerHTML = `<strong>${likeCount}</strong> ${likeCount === 1 ? 'like' : 'likes'}`;
-                }
-                
-                likeSection.style.display = 'flex';
-            } catch (err) {
-                console.error('Error updating like avatars:', err);
-            }
-        }
-
-        /* ========== SUBMIT COMMENT FROM POPUP ========== */
-        async function submitPopupComment() {
-            const content = document.getElementById('popupCommentText').value.trim();
-            if (!content) return;
-
-            const btn = document.getElementById('popupSubmitBtn');
-            btn.disabled = true;
-
-            try {
-                const res = await axios.post(`/comments/blog/${blogId}`, { content });
-                if (res.data.success) {
-                    document.getElementById('popupCommentText').value = '';
-                    notify.success('Comment posted!');
-                    loadPopupComments();
-                }
-            } catch (err) {
-                notify.error('Failed to post comment');
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        async function submitPopupReply(parentCommentId) {
-            const content = document.getElementById(`popup-reply-text-${parentCommentId}`).value.trim();
-            if (!content) return;
-
-            const btn = document.querySelector(`#popup-reply-form-${parentCommentId} .btn-reply-submit`);
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-            try {
-                const res = await axios.post(`/comments/blog/${blogId}`, { 
-                    content, 
-                    parentCommentId 
-                });
-                if (res.data.success) {
-                    togglePopupReplyForm(parentCommentId);
-                    document.getElementById(`popup-reply-text-${parentCommentId}`).value = '';
-                    notify.success('Reply posted!');
-                    loadPopupComments();
-                }
-            } catch (err) {
-                notify.error('Failed to post reply');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Reply';
-            }
-        }
-
-        async function deletePopupComment(commentId) {
-            if (!await confirmAction('Delete this comment?')) return;
-            
-            try {
-                const res = await axios.delete(`/comments/${commentId}`);
-                if (res.data.success) {
-                    notify.success('Comment deleted');
-                    loadPopupComments();
-                }
-            } catch (err) {
-                notify.error('Failed to delete comment');
-            }
-        }
-
-        async function togglePopupCommentLike(commentId) {
-            if (!currentUserId) {
-                window.location.href = '/user/signin';
-                return;
-            }
-            try {
-                const res = await axios.post(`/comments/${commentId}/like`);
-                if (res.data.success) {
-                    loadPopupComments();
-                }
-            } catch (err) {
-                notify.error('Failed to like comment');
-            }
-        }
-
-        /* ========== LIKE BLOG ========== */
-        async function toggleLike() {
-            if (!currentUserId) {
-                window.location.href = '/user/signin';
-                return;
-            }
-            try {
-                const res = await axios.post(`/blogs/${blogId}/like`);
-                const data = res.data;
-                if (data.success) {
-                    const likeBtn = document.getElementById('likeBtn');
-                    const likeCount = document.getElementById('likeCount');
-                    const sidebarLikeCount = document.getElementById('sidebarLikeCount');
-                    
-                    likeCount.textContent = data.likeCount;
-                    sidebarLikeCount.textContent = data.likeCount;
-                    
-                    // Update blogLikes array
-                    if (data.liked) {
-                        blogLikes.push(currentUserId);
-                        likeBtn.innerHTML = '<i class="fas fa-heart heart-animate"></i> <span id="likeCount">' + data.likeCount + '</span> Liked';
-                        likeBtn.classList.remove('btn-outline-danger');
-                        likeBtn.classList.add('btn-danger');
-                    } else {
-                        blogLikes = blogLikes.filter(id => id !== currentUserId);
-                        likeBtn.innerHTML = '<i class="far fa-heart"></i> <span id="likeCount">' + data.likeCount + '</span> Like';
-                        likeBtn.classList.remove('btn-danger');
-                        likeBtn.classList.add('btn-outline-danger');
-                    }
-                    
-                    // Update like avatars in popup
-                    updateLikeAvatars();
-                }
-            } catch (err) {
-                notify.error('Failed to like blog');
-            }
-        }
-
-        /* ========== FOLLOW/UNFOLLOW ========== */
-        async function checkFollowStatus() {
-            if (!currentUserId || currentUserId === blogAuthorId) return;
-            
-            try {
-                const res = await axios.get(`/follow/<%= blog.createdBy._id %>/followers`);
-                if (res.data.success) {
-                    const followers = res.data.followers || [];
-                    isFollowingAuthor = followers.some(f => f._id.toString() === currentUserId);
-                    updateFollowButton();
-                }
-            } catch (err) {
-                console.error('Error checking follow status:', err);
-            }
-        }
-
-        function updateFollowButton() {
-            const followBtn = document.getElementById('followBtn');
-            const followBtnText = document.getElementById('followBtnText');
-            
-            if (!followBtn) return;
-            
-            if (isFollowingAuthor) {
-                followBtn.classList.remove('btn-primary');
-                followBtn.classList.add('btn-success');
-                followBtn.innerHTML = '<i class="fas fa-user-check"></i> <span id="followBtnText">Following</span>';
-            } else {
-                followBtn.classList.remove('btn-success');
-                followBtn.classList.add('btn-primary');
-                followBtn.innerHTML = '<i class="fas fa-user-plus"></i> <span id="followBtnText">Follow</span>';
-            }
-        }
-
-        async function toggleFollow() {
-            if (!currentUserId) {
-                window.location.href = '/user/signin';
-                return;
-            }
-            
-            const followBtn = document.getElementById('followBtn');
-            followBtn.disabled = true;
-            
-            try {
-                const res = await axios.post(`/follow/<%= blog.createdBy._id %>/follow`);
-                const data = res.data;
-                if (data.success) {
-                    isFollowingAuthor = data.following;
-                    updateFollowButton();
-                    notify.success(data.message);
-                    loadAuthorStats();
-                }
-            } catch (err) {
-                notify.error('Failed to follow user');
-            } finally {
-                followBtn.disabled = false;
-            }
-        }
-
-        /* ========== AUTHOR STATS ========== */
-        async function loadAuthorStats() {
-            try {
-                const res = await axios.get(`/follow/<%= blog.createdBy._id %>/followers`);
-                if (res.data.success) {
-                    document.getElementById('authorFollowers').textContent = res.data.total;
-                }
-                const res2 = await axios.get(`/follow/<%= blog.createdBy._id %>/following`);
-                if (res2.data.success) {
-                    document.getElementById('authorFollowing').textContent = res2.data.total;
-                }
-            } catch (err) {
-                console.error('Error loading author stats:', err);
-            }
-        }
-
-        /* ========== OTHER ========== */
-        async function deleteBlog(id) {
-            if (!await confirmAction('Are you sure you want to delete this blog?')) return;
-            try {
-                const res = await axios.delete(`/blogs/${id}`);
-                if (res.data.success) {
-                    notify.success('Blog deleted successfully!');
-                    setTimeout(() => window.location.href = '/', 2000);
-                }
-            } catch (err) {
-                notify.error('Failed to delete blog');
-            }
-        }
-
-        document.getElementById('shareBtn').addEventListener('click', () => {
-            const shareData = {
-                title: '<%= blog.title %>',
-                text: 'Check out this amazing blog!',
-                url: window.location.href
-            };
-            if (navigator.share) {
-                navigator.share(shareData);
-            } else {
-                const url = window.location.href;
-                const text = `Check out: ${shareData.title} - ${url}`;
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(text);
-                    notify.success('Link copied to clipboard!');
-                }
-            }
-        });
-
-        // Textarea auto-resize
-        const popupTextarea = document.getElementById('popupCommentText');
-        if (popupTextarea) {
-            popupTextarea.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-            });
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            initCodeBlocks();
-            loadAuthorStats();
-            checkFollowStatus();
-            updateLikeAvatars();
-        });
-    </script>
 </body>
 </html>
