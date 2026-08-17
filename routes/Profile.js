@@ -52,17 +52,17 @@ router.put("/privacy", restrictToLoggedInUserOnly, async (req, res) => {
     user.isPrivate = newPrivacy;
 
     // If switching to public, auto-approve all pending requests
-    if (!newPrivacy && user.followRequests.length > 0) {
+    if (!newPrivacy && (user.followRequests || []).length > 0) {
       const NotificationService = require("../services/notificationService");
 
       for (const requesterId of user.followRequests) {
         const requester = await User.findById(requesterId);
         if (requester) {
           // Add to each other's lists
-          if (!user.followers.some(id => id.toString() === requesterId.toString())) {
+          if (!(user.followers || []).some(id => id.toString() === requesterId.toString())) {
             user.followers.push(requesterId);
           }
-          if (!requester.following.some(id => id.toString() === user._id.toString())) {
+          if (!(requester.following || []).some(id => id.toString() === user._id.toString())) {
             requester.following.push(user._id);
             await requester.save();
           }
@@ -124,16 +124,27 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
     const currentUserId = req.user?._id?.toString();
 
-    const targetUser = await User.findById(id)
+    let targetUser = await User.findById(id)
       .populate("followers", "fullName profileImageURL")
       .populate("following", "fullName profileImageURL")
       .lean();
 
     if (!targetUser) return res.status(404).render("404", { message: "User not found" });
 
+    // ====== NULL-SAFETY: Ensure arrays exist for old documents ======
+    targetUser.followers = targetUser.followers || [];
+    targetUser.following = targetUser.following || [];
+    targetUser.followRequests = targetUser.followRequests || [];
+    targetUser.isPrivate = targetUser.isPrivate || false;
+    targetUser.bio = targetUser.bio || "";
+    targetUser.website = targetUser.website || "";
+    targetUser.location = targetUser.location || "";
+    targetUser.profileImageURL = targetUser.profileImageURL || "/imgs/default.png";
+    // ================================================================
+
     const isSelf = currentUserId === id;
     const isFollower = targetUser.followers.some(
-      f => f._id.toString() === currentUserId
+      f => f._id && f._id.toString() === currentUserId
     );
     const isAdmin = req.user?.role === "ADMIN";
     const hasAccess = isSelf || isFollower || isAdmin || !targetUser.isPrivate;
@@ -170,15 +181,14 @@ router.get("/:id", async (req, res) => {
     // If private and no access, show locked view
     if (targetUser.isPrivate && !hasAccess) {
       // Check if current user has sent a request
-      const currentUser = currentUserId ? await User.findById(currentUserId).lean() : null;
-      if (currentUser) {
+      if (currentUserId) {
         profileData.hasPendingRequest = targetUser.followRequests.some(
           rid => rid.toString() === currentUserId
         );
       }
 
       return res.render("Profile", {
-        title: `${targetUser.fullName} (@${targetUser.fullName.split(" ").join("").toLowerCase()})`,
+        title: `${targetUser.fullName} — Blogify`,
         user: req.user || null,
         profile: profileData,
         blogs: [],
@@ -212,8 +222,9 @@ router.get("/:id", async (req, res) => {
       locked: false
     });
   } catch (error) {
-    console.error("Profile view error:", error);
-    res.status(500).send("Internal Server Error");
+    console.error("🚨 Profile view error:", error);
+    // Send actual error message for debugging (remove in production later)
+    res.status(500).send(`Internal Server Error: ${error.message}`);
   }
 });
 
