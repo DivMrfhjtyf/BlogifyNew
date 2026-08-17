@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Blog = require("../models/Blog");
 const User = require("../models/user");
+const BlogAnalytics = require("../models/BlogAnalytics");
 const { restrictToLoggedInUserOnly } = require("../middlewares/authentication");
 const { blogCreationLimiter } = require("../middlewares/rateLimiting");
 const cloudinaryUpload = require("../middlewares/CloudinaryUploads");
@@ -44,18 +45,21 @@ router.post("/add-new", blogCreationLimiter, cloudinaryUpload.single("coverImage
       createdBy: req.user._id
     });
 
-    await require("../models/BlogAnalytics").create({
+    // Create analytics record
+    await BlogAnalytics.create({
       blog: newBlog._id,
       author: req.user._id
     });
 
     if (newBlog.status === "published") {
       try {
-        await NotificationService.createBlogPostNotifications(
-          req.user._id,
-          newBlog._id,
-          newBlog.title
-        );
+        if (NotificationService.createBlogPostNotifications) {
+          await NotificationService.createBlogPostNotifications(
+            req.user._id,
+            newBlog._id,
+            newBlog.title
+          );
+        }
       } catch (notifError) {
         console.error("Blog post notification error (non-critical):", notifError);
       }
@@ -158,7 +162,16 @@ router.get("/:id", async (req, res) => {
         $inc: { viewCount: 1 }
       });
 
-      await AnalyticsService.trackView(blog._id, req.user?._id, "direct");
+      // Update analytics
+      try {
+        await BlogAnalytics.incrementViews(blog._id, "direct");
+      } catch (e) {
+        console.error("Analytics increment error (non-critical):", e.message);
+      }
+
+      if (AnalyticsService.trackView) {
+        await AnalyticsService.trackView(blog._id, req.user?._id, "direct");
+      }
     }
 
     const updatedBlog = await Blog.findById(req.params.id)
@@ -274,20 +287,36 @@ router.post("/:id/like", async (req, res) => {
 
     if (hasLiked) {
       blog.likes = blog.likes.filter(id => id.toString() !== req.user._id.toString());
+      try {
+        await BlogAnalytics.decrementLikes(blog._id);
+      } catch (e) {
+        console.error("Analytics decrement error (non-critical):", e.message);
+      }
     } else {
       blog.likes.push(req.user._id);
+      try {
+        await BlogAnalytics.incrementLikes(blog._id);
+      } catch (e) {
+        console.error("Analytics increment error (non-critical):", e.message);
+      }
 
       if (blog.createdBy.toString() !== req.user._id.toString()) {
-        await NotificationService.createNotification(
-          blog.createdBy,
-          "like",
-          {
-            title: "New like",
-            message: `${req.user.fullName} liked your blog`,
-            blog: blog._id,
-            actor: req.user._id
+        try {
+          if (NotificationService.createNotification) {
+            await NotificationService.createNotification(
+              blog.createdBy,
+              "like",
+              {
+                title: "New like",
+                message: `${req.user.fullName} liked your blog`,
+                blog: blog._id,
+                actor: req.user._id
+              }
+            );
           }
-        );
+        } catch (e) {
+          console.error("Notification error (non-critical):", e.message);
+        }
       }
     }
 
@@ -302,7 +331,7 @@ router.post("/:id/like", async (req, res) => {
 // ====================== GET FEATURED BLOGS ======================
 router.get("/featured/list", async (req, res) => {
   try {
-    const privateAuthors = await User.find({ isPrivate: true }).select("_id").lean();
+    const privateAuthors = await User.find({ isPrivate: true, isDeleted: false }).select("_id").lean();
     const privateAuthorIds = privateAuthors.map(u => u._id.toString());
 
     const blogs = await Blog.find({
@@ -330,7 +359,7 @@ router.get("/tags/:tag", async (req, res) => {
     const limit = 9;
     const skip = (page - 1) * limit;
 
-    const privateAuthors = await User.find({ isPrivate: true }).select("_id").lean();
+    const privateAuthors = await User.find({ isPrivate: true, isDeleted: false }).select("_id").lean();
     const privateAuthorIds = privateAuthors.map(u => u._id.toString());
 
     const blogs = await Blog.find({
