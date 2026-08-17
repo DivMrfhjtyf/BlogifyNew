@@ -227,6 +227,10 @@ app.get("/", async (req, res) => {
   }
 });
 
+// Add near the top, after app is created and middlewares are set (but before mounting /user route)
+app.get('/signin', (req, res) => res.redirect('/user/signin'));
+app.get('/signup', (req, res) => res.redirect('/user/signup'));
+
 // ====================== ROUTES ======================
 app.use("/admin", AdminRoute);
 app.use("/profile", ProfileRoute);
